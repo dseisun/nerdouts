@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-from models import Workout, Exercise, Session, Categories
+from models import Workout, Exercise, Session, Categories, WorkoutExercise
 from random import random, shuffle, sample
 import subprocess
 from itertools import groupby, count
@@ -32,6 +32,10 @@ def generate_workout(time):
     return wo
 
 
+def set_association(workout, exercises):
+    return [WorkoutExercise(workout=workout, exercise=e) for e in exercises]
+
+
 def generate_workout_w_categories(time, categories, shuffled=True):
     category_times = {k:(v/100.0)*time for k,v in categories.iteritems()}
     wo = Workout()
@@ -45,10 +49,11 @@ def generate_workout_w_categories(time, categories, shuffled=True):
                 time -= exc.time
             else:
                 break
+    
     if shuffled:
-        wo.exercises.extend(sample(exc_list, len(exc_list)))
-    else:
-        wo.exercises.extend(exc_list)
+        exc_list = sample(exc_list, len(exc_list))
+
+    assoc = set_association(wo, exc_list)
     return wo
 
 if __name__ == '__main__':
