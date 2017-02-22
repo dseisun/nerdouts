@@ -13,17 +13,17 @@ secrets = yaml.load(open('secrets.yaml', 'r'))
 
 
 engine = create_engine(secrets['sqlalchemy_connection_string'], echo=True)
-
 Base = declarative_base()
-
 Session = sessionmaker(bind=engine)
 
+categories = {
+    'physical_therapy': 'physical_therapy',
+    'stretch': 'stretch',
+    'strength': 'strength',
+    'rolling': 'rolling'}
 
-association_table = Table('workout_exercises', Base.metadata,
-    Column('created_date', DateTime, default=datetime.now()),
-    Column('workout_id', Integer, ForeignKey('workout.id')),
-    Column('exercise_id', Integer, ForeignKey('exercise.id'))
-)
+Categories = enum.Enum('Categories', categories)
+
 
 
 class MusicIface(object):
@@ -45,23 +45,30 @@ class MusicIface(object):
         if pause_music:
             self.iface.Play()   
 
+class WorkoutExercise(Base):
+    __tablename__ = 'workout_exercise'
+    workout_exercise_id = Column(Integer, primary_key=True)
+    workout_id = Column(Integer, ForeignKey("workout.id"))
+    exercise_id = Column(Integer, ForeignKey("exercise.id"))
+    created_date = Column(DateTime, default=datetime.now())
+    workout = relationship("Workout", back_populates="workout_exercises")
+    exercise = relationship("Exercise", back_populates="workout_exercises")
 
 class Workout(Base, MusicIface):
     __tablename__ = 'workout'
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now())
-    exercises = relationship("Exercise",
-                             secondary=association_table,
-                             back_populates='workouts')
+    workout_exercises = relationship("WorkoutExercise", back_populates='workout')
 
     @property
     def get_total_time(self):
-        return sum([exc.time for exc in self.exercises])
+        return sum([wo_exc.exercise.time for wo_exc in self.workout_exercises])
 
 
     def run_workout(self):
-        for e in self.exercises:
-            e.run()
+        for e in self.workout_exercises:
+            e.created_date = datetime.now()
+            e.exercise.run()
         self.say('Workout finished')
 
     def __repr__(self):
@@ -69,13 +76,6 @@ class Workout(Base, MusicIface):
                 % (self.__tablename__, self.id, self.created_date))
 
 
-categories = {
-    'physical_therapy': 'physical_therapy',
-    'stretch': 'stretch',
-    'strength': 'strength',
-    'rolling': 'rolling'}
-
-Categories = enum.Enum('Categories', categories)
 
 
 class Exercise(Base, MusicIface):
@@ -88,11 +88,9 @@ class Exercise(Base, MusicIface):
     side = Column(String(10))
     default_time = Column(Integer)
     repetition = Column(Integer)
-    prompt = Column(String(1024))
-    
-    workouts = relationship("Workout",
-                            secondary=association_table,
-                            back_populates='exercises')
+    prompt = Column(String(1024))    
+    workout_exercises = relationship("WorkoutExercise", back_populates='exercise')
+
 
 
     def sentence(self, side=''):
@@ -127,4 +125,5 @@ class Exercise(Base, MusicIface):
     def __repr__(self):
         return ("<%s (name = %s, repetition = %s, sides = %s, default_time = %s)>"
                 % (self.__tablename__, self.name, self.repetition, self.sides, self.default_time))
+
 
