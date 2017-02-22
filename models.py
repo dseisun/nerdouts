@@ -4,7 +4,7 @@ import time
 from cached_property import cached_property
 import logging
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Table, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import dbus
@@ -23,7 +23,6 @@ categories = {
     'rolling': 'rolling'}
 
 Categories = enum.Enum('Categories', categories)
-
 
 
 class MusicIface(object):
@@ -45,6 +44,7 @@ class MusicIface(object):
         if pause_music:
             self.iface.Play()   
 
+
 class WorkoutExercise(Base):
     __tablename__ = 'workout_exercise'
     workout_exercise_id = Column(Integer, primary_key=True)
@@ -53,6 +53,7 @@ class WorkoutExercise(Base):
     created_date = Column(DateTime, default=datetime.now())
     workout = relationship("Workout", back_populates="workout_exercises")
     exercise = relationship("Exercise", back_populates="workout_exercises")
+
 
 class Workout(Base, MusicIface):
     __tablename__ = 'workout'
@@ -76,8 +77,6 @@ class Workout(Base, MusicIface):
                 % (self.__tablename__, self.id, self.created_date))
 
 
-
-
 class Exercise(Base, MusicIface):
     __tablename__ = 'exercise'
 
@@ -90,8 +89,6 @@ class Exercise(Base, MusicIface):
     repetition = Column(Integer)
     prompt = Column(String(1024))    
     workout_exercises = relationship("WorkoutExercise", back_populates='exercise')
-
-
 
     def sentence(self, side=''):
         return self.prompt.format(name=self.name, side=side)
@@ -109,7 +106,6 @@ class Exercise(Base, MusicIface):
                 self.say(self.sentence(side=side))
                 self.countdown(self.default_time)
 
-
     def countdown(self, exc_time):
         for sec in range(exc_time):
             self.logger.info("{0} seconds until the next exercise".format(exc_time-sec))
@@ -120,7 +116,6 @@ class Exercise(Base, MusicIface):
     @property
     def time(self):
         return self.default_time * self.repetition * len(self.sides)
-
 
     def __repr__(self):
         return ("<%s (name = %s, repetition = %s, sides = %s, default_time = %s)>"
