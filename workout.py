@@ -4,6 +4,7 @@ import argparse
 from models import Workout, Exercise, Session, Categories, WorkoutExercise
 from random import random, shuffle, sample
 import subprocess
+from six import iteritems
 from itertools import groupby, count
 
 
@@ -37,7 +38,7 @@ def set_association(workout, exercises):
 
 
 def generate_workout_w_categories(time, categories, shuffled=True):
-    category_times = {k:(v/100.0)*time for k,v in categories.iteritems()}
+    category_times = {k:(v/100.0)*time for k,v in iteritems(categories)}
     wo = Workout()
     exc_list = []
     for cat, time in category_times.items():

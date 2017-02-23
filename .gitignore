@@ -2,3 +2,4 @@ vendor/
 *.pyc
 secrets.yaml
 *~
+*.db
