@@ -2,7 +2,7 @@
 
 import argparse
 import json
-from models import Workout, Exercise, Session, Categories, WorkoutExercise
+from models import Workout, Exercise, Session, ExerciseCategory, WorkoutExercise
 from random import random, shuffle, sample
 import subprocess
 from six import iteritems
@@ -11,8 +11,8 @@ from itertools import groupby, count
 
 ses = Session()
 # Todo: Move exercise and grouped exercise stuff to functions so they don't get executed before argparse
-exercises = sorted(ses.query(Exercise).all(), key=lambda x: x.category.value)
-grouped_exercises = {cat: sorted(list(excs), key=lambda x: random()) for cat, excs in groupby(exercises, lambda x: x.category.value)}
+exercises = sorted(ses.query(Exercise).all(), key=lambda x: x.category_id)
+grouped_exercises = {cat: sorted(list(excs), key=lambda x: random()) for cat, excs in groupby(exercises, lambda x: x.category_id)}
 
 
 def generate_workout(time):
@@ -34,7 +34,7 @@ def generate_workout(category_times, shuffled=True):
     exc_list = []
     for cat, time in category_times:
         for i in count():
-            cat_excercises = grouped_exercises[cat]
+            cat_excercises = grouped_exercises[cat.id]
             exc = cat_excercises[i%len(cat_excercises)]
             if time > exc.time:
                 exc_list.append(exc)
@@ -59,7 +59,12 @@ if __name__ == '__main__':
     with open(args.workout) as data_file:
         workout_config = json.load(data_file)
 
-    category_times = [(c['name'], args.time * 60 * c['weight']) for c in workout_config['categories']]
+    category_times = []
+    for category in workout_config['categories']:
+        exercise_category = ses.query(ExerciseCategory).filter(ExerciseCategory.name == category['name']).first()
+        time = args.time * 60 * category['weight']
+        category_times.append((exercise_category, time))
+
     wo = generate_workout(category_times)
 
     wo.iface.Next()

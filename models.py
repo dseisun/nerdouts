@@ -16,14 +16,6 @@ engine = create_engine(secrets['sqlalchemy_connection_string'], echo=True)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
-categories = {
-    'physical_therapy': 'physical_therapy',
-    'stretch': 'stretch',
-    'strength': 'strength',
-    'rolling': 'rolling'}
-
-Categories = enum.Enum('Categories', categories)
-
 
 class MusicIface(object):
     logger = logging.Logger('workout')
@@ -77,13 +69,19 @@ class Workout(Base, MusicIface):
                 % (self.__tablename__, self.id, self.created_date))
 
 
+class ExerciseCategory(Base):
+    __tablename__ = 'exercise_category'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255))
+
+
 class Exercise(Base, MusicIface):
     __tablename__ = 'exercise'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now())
     name = Column(String(255))
-    category = Column(Enum(Categories))
+    category_id = Column(ForeignKey("exercise_category.id"))
     side = Column(String(10))
     default_time = Column(Integer)
     repetition = Column(Integer)
