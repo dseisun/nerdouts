@@ -108,7 +108,7 @@ class Exercise(Base, MusicIface):
 
     def countdown(self, exc_time):
         for sec in range(exc_time):
-            self.logger.info("{0} seconds until the next exercise".format(exc_time-sec))
+            self.logger.debug("{0} seconds until the next exercise".format(exc_time-sec))
             if exc_time - sec == 10:
                 self.say("10 Seconds left", pause_music=False)
             time.sleep(1)
