@@ -1,20 +1,14 @@
-import enum
 import subprocess
 import time
 from cached_property import cached_property
 import logging
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, Enum
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import dbus
-import yaml
-secrets = yaml.load(open('secrets.yaml', 'r'))
 
-
-engine = create_engine(secrets['sqlalchemy_connection_string'], echo=True)
 Base = declarative_base()
-Session = sessionmaker(bind=engine)
 
 
 class MusicIface(object):
@@ -42,6 +36,8 @@ class WorkoutExercise(Base):
     workout_exercise_id = Column(Integer, primary_key=True)
     workout_id = Column(Integer, ForeignKey("workout.id"))
     exercise_id = Column(Integer, ForeignKey("exercise.id"))
+    time_per_set = Column(Integer)
+    repetition = Column(Integer)
     created_date = Column(DateTime, default=datetime.now())
     workout = relationship("Workout", back_populates="workout_exercises")
     exercise = relationship("Exercise", back_populates="workout_exercises")
@@ -57,11 +53,16 @@ class Workout(Base, MusicIface):
     def get_total_time(self):
         return sum([wo_exc.exercise.time for wo_exc in self.workout_exercises])
 
-
-    def run_workout(self):
+    def run_workout(self, debug=False):
         for e in self.workout_exercises:
             e.created_date = datetime.now()
-            e.exercise.run()
+            e.time_per_set = e.exercise.default_time
+            e.repetition = e.exercise.repetition
+            if not debug:
+                e.exercise.run()
+            else:
+                logging.info("QA MODE: Running exercise: %s" % e)
+                time.sleep(1)
         self.say('Workout finished')
 
     def __repr__(self):
