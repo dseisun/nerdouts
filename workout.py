@@ -70,11 +70,7 @@ if __name__ == '__main__':
     subprocess.call('clementine -l /home/dseisun/.config/Clementine/Playlists/Workout.xspf', shell=True)
 
     secrets = yaml.load(open('secrets.yaml', 'r'))
-    if not args.debug:
-        connection_param = 'sqlalchemy_connection_string'
-    else:
-        connection_param = 'sqlalchemy_connection_string_qa'
-    engine = create_engine(secrets[connection_param], echo=True)
+    engine = create_engine(secrets['sqlalchemy_connection_string'], echo=True)
 
     Session = scoped_session(sessionmaker(bind=engine))
 
