@@ -5,9 +5,8 @@ from models import Workout, Exercise, ExerciseCategory, WorkoutExercise
 from random import random, sample
 import subprocess
 from itertools import groupby, count
-from sqlalchemy.orm import sessionmaker, scoped_session
 import logging
-from database import engine
+from database import engine, Session
 
 logging.basicConfig(level=logging.INFO)
 
@@ -68,9 +67,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     subprocess.call('clementine -l /home/dseisun/.config/Clementine/Playlists/Workout.xspf', shell=True)
-
-
-    Session = scoped_session(sessionmaker(bind=engine))
 
     ses = Session()
 
