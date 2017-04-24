@@ -10,12 +10,12 @@ import dbus
 
 Base = declarative_base()
 
+logger = logging.Logger('workout')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.INFO)
+
 
 class MusicIface(object):
-    logger = logging.Logger('workout')
-    logger.addHandler(logging.StreamHandler())
-    logger.setLevel(logging.INFO)
-
     @cached_property
     def iface(self):
         session_bus = dbus.SessionBus()
@@ -26,7 +26,7 @@ class MusicIface(object):
         if pause_music:
             self.iface.Pause()
         subprocess.call('echo "' + sentence + '"| festival --tts', shell=True)
-        self.logger.info(sentence)
+        logger.info(sentence)
         if pause_music:
             self.iface.Play()   
 
@@ -107,7 +107,7 @@ class Exercise(Base, MusicIface):
 
     def countdown(self, exc_time):
         for sec in range(exc_time):
-            self.logger.info("{0} seconds until the next exercise".format(exc_time-sec))
+            logger.info("{0} seconds until the next exercise".format(exc_time-sec))
             if exc_time - sec == 10:
                 self.say("10 Seconds left", pause_music=False)
             time.sleep(1)
