@@ -1,34 +1,9 @@
-import subprocess
-import time
-from cached_property import cached_property
-import logging
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-import dbus
 
 Base = declarative_base()
-
-logger = logging.Logger('workout')
-logger.addHandler(logging.StreamHandler())
-logger.setLevel(logging.INFO)
-
-
-class MusicIface(object):
-    @cached_property
-    def iface(self):
-        session_bus = dbus.SessionBus()
-        player = session_bus.get_object('org.mpris.clementine', '/Player')
-        return dbus.Interface(player, dbus_interface='org.freedesktop.MediaPlayer')
-
-    def say(self, sentence, pause_music=True):
-        if pause_music:
-            self.iface.Pause()
-        subprocess.call('echo "' + sentence + '"| festival --tts', shell=True)
-        logger.info(sentence)
-        if pause_music:
-            self.iface.Play()   
 
 
 class WorkoutExercise(Base):
@@ -43,7 +18,7 @@ class WorkoutExercise(Base):
     exercise = relationship("Exercise", back_populates="workout_exercises")
 
 
-class Workout(Base, MusicIface):
+class Workout(Base):
     __tablename__ = 'workout'
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now())
@@ -52,18 +27,6 @@ class Workout(Base, MusicIface):
     @property
     def get_total_time(self):
         return sum([wo_exc.exercise.time for wo_exc in self.workout_exercises])
-
-    def run_workout(self, debug=False):
-        for e in self.workout_exercises:
-            e.created_date = datetime.now()
-            e.time_per_set = e.exercise.default_time
-            e.repetition = e.exercise.repetition
-            if not debug:
-                e.exercise.run()
-            else:
-                logging.info("QA MODE: Running exercise: %s" % e)
-                time.sleep(1)
-        self.say('Workout finished')
 
     def __repr__(self):
         return ("<%s (id = %s, created_date = %s)>"
@@ -76,7 +39,7 @@ class ExerciseCategory(Base):
     name = Column(String(255))
 
 
-class Exercise(Base, MusicIface):
+class Exercise(Base):
     __tablename__ = 'exercise'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -98,19 +61,6 @@ class Exercise(Base, MusicIface):
             return ['left', 'right']
         else:
             return [self.side]
-
-    def run(self):
-        for side in self.sides:
-            for i in range(self.repetition):
-                self.say(self.sentence(side=side))
-                self.countdown(self.default_time)
-
-    def countdown(self, exc_time):
-        for sec in range(exc_time):
-            logger.info("{0} seconds until the next exercise".format(exc_time-sec))
-            if exc_time - sec == 10:
-                self.say("10 Seconds left", pause_music=False)
-            time.sleep(1)
 
     @property
     def time(self):
