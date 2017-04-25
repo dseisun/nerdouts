@@ -1,8 +1,8 @@
 import json
 import models
-import workout
+import database
 
-session = workout.Session()
+session = database.Session()
 
 exercises = json.load(open('exercises.json', 'r'))
 

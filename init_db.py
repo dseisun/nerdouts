@@ -1,5 +1,5 @@
+from database import engine
 from models import Base
-from workout import engine
 
 
 if __name__ == "__main__":

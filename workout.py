@@ -2,13 +2,12 @@
 import argparse
 import json
 from models import Workout, Exercise, ExerciseCategory, WorkoutExercise
-import yaml
 from random import random, sample
 import subprocess
 from itertools import groupby, count
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
 import logging
+from database import engine, Session
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -68,15 +67,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     subprocess.call('clementine -l /home/dseisun/.config/Clementine/Playlists/Workout.xspf', shell=True)
-
-    secrets = yaml.load(open('secrets.yaml', 'r'))
-    if not args.debug:
-        connection_param = 'sqlalchemy_connection_string'
-    else:
-        connection_param = 'sqlalchemy_connection_string_qa'
-    engine = create_engine(secrets[connection_param], echo=True)
-
-    Session = scoped_session(sessionmaker(bind=engine))
 
     ses = Session()
 
