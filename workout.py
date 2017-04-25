@@ -76,5 +76,8 @@ if __name__ == '__main__':
 
     wo.iface.Next()
     wo.run_workout(args.debug)
-    ses.add(wo)
-    ses.commit()
+    if not args.debug:
+        ses.add(wo)
+        ses.commit()
+    else:
+        logging.info('No commit in debug mode')
