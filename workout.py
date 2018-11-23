@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import argparse
+from config import Config
+
 from datetime import datetime
-import json
 from models import Workout, Exercise, ExerciseCategory, WorkoutExercise
 import time
 from random import random, sample
@@ -19,29 +20,50 @@ class WorkoutGenerator(object):
     def __init__(self):
         self.session = Session()
         self.exercises = sorted(self.session.query(Exercise).all(), key=lambda x: x.category_id)
+        # Map of category_id and Exercises
         self.shuffled_grouped_exercises = {cat: sorted(list(excs), key=lambda x: random())
                                            for cat, excs in
                                            groupby(self.exercises, lambda x: x.category_id)}
-        self.wo = Workout()
 
-    def set_association(self, exercises):
-        return [WorkoutExercise(workout=self.wo, exercise=e) for e in exercises]
+    def set_association(self, workout, exercises):
+        return [WorkoutExercise(workout=workout, exercise=e) for e in exercises]
 
-    def generate_workout(self, category_times):
-        # Generate exercises per category time alotted
+    def generate_workout(self, config):
+        """
+        :param config: Config object
+        :return: A list of WorkoutExercises
+        """
+        wo = Workout()
+        # Get whitelisted exercises
         exc_list = []
-        for cat, time in category_times:
-            exc_list.extend(self.generate_exercises_for_category(cat.id, time))
+        whitelisted_exercises = (self.session.query(Exercise)
+                                 .filter(Exercise.id.in_(config.whitelisted_exercises)).all())
+        # Add the whitelisted exercises first
+        exc_list.extend(whitelisted_exercises)
+        # Generate exercises per category time alotted excluding whitelisted exercises
+        for cat_name, time in config.exercise_category_times.items():
+            exc_for_cat = self.generate_exercises_for_category(cat_name, time,
+                                                               whitelisted_exercises)
+            exc_list.extend(exc_for_cat)
 
         # Shuffle all the categories
         exc_list = sample(exc_list, len(exc_list))
 
-        self.set_association(exc_list)
-        return self.wo
+        self.set_association(wo, exc_list)
+        return wo
 
-    def generate_exercises_for_category(self, category_id, category_time):
+    def generate_exercises_for_category(self, category_name, category_time, whitelisted_exercises):
+        """Whitelisted exercises should get added even if the category is missing,
+        so we don't add them here"""
+        cat = (self.session.query(ExerciseCategory)
+               .filter(ExerciseCategory.name == category_name).first())
+
+        cat_whitelisted_exercises = filter(lambda exc: exc.category_id == cat.id,
+                                           whitelisted_exercises)
+        category_time = category_time - sum(map(lambda exc: exc.time, cat_whitelisted_exercises))
+
         exc_list = []
-        cat_excercises = self.shuffled_grouped_exercises[category_id]
+        cat_excercises = self.shuffled_grouped_exercises[cat.id]
         for i in count():
             exc = cat_excercises[i % len(cat_excercises)]
             if category_time > exc.time:
@@ -50,17 +72,6 @@ class WorkoutGenerator(object):
             else:
                 break
         return exc_list
-
-
-def config_to_category_times(session, config_path):
-    with open(config_path) as data_file:
-        workout_config = json.load(data_file)
-    category_times = []
-    for category in workout_config['categories']:
-        exercise_category = session.query(ExerciseCategory).filter(ExerciseCategory.name == category['name']).first()
-        time = args.time * 60 * category['weight']
-        category_times.append((exercise_category, time))
-    return category_times
 
 
 def countdown(exc_time):
@@ -101,9 +112,9 @@ if __name__ == '__main__':
     parser.add_argument('-d', dest='debug', action='store_true', help='Run in debug mode.')
     args = parser.parse_args()
     ses = Session()
+    config = Config(args.workout, args.time)
     gw = WorkoutGenerator()
-    category_times = config_to_category_times(ses, args.workout)
-    wo = gw.generate_workout(category_times)
+    wo = gw.generate_workout(config)
 
     run_workout(wo, args.debug)
 
