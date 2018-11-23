@@ -16,5 +16,7 @@
       "name": "rolling",
       "weight": 0.20
     }
-  ]
+  ],
+
+  "whitelist": []
 }
