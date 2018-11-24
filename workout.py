@@ -7,7 +7,7 @@ from models import Workout, Exercise, ExerciseCategory, WorkoutExercise
 import time
 from random import random, sample
 from itertools import groupby, count
-from database import Session
+from database import get_connection
 import logging
 
 from coach import Coach
@@ -17,8 +17,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 class WorkoutGenerator(object):
-    def __init__(self):
-        self.session = Session()
+    def __init__(self, session):
+        self.session = session
         self.exercises = sorted(self.session.query(Exercise).all(), key=lambda x: x.category_id)
         # Map of category_id and Exercises
         self.shuffled_grouped_exercises = {cat: sorted(list(excs), key=lambda x: random())
@@ -100,7 +100,7 @@ def run_workout(workout, debug=False):
         if not debug:
             run_exercise(e.exercise)
         else:
-            logging.info("QA MODE: Running exercise: %s" % e)
+            logging.info("QA MODE: Running exercise: %s" % e.exercise)
             time.sleep(1)
     Coach.say('Workout finished')
 
@@ -111,9 +111,9 @@ if __name__ == '__main__':
     parser.add_argument('-w', dest='workout', type=str, help='Workout config JSON', nargs='?', default='config.json')
     parser.add_argument('-d', dest='debug', action='store_true', help='Run in debug mode.')
     args = parser.parse_args()
-    ses = Session()
+    ses = get_connection(args.debug)
     config = Config(args.workout, args.time)
-    gw = WorkoutGenerator()
+    gw = WorkoutGenerator(ses)
     wo = gw.generate_workout(config)
 
     run_workout(wo, args.debug)
