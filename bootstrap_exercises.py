@@ -1,16 +1,21 @@
 import json
 import models
 import database
+import argparse
 
-session = database.Session()
 
-exercises = json.load(open('exercises.json', 'r'))
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog="Bootstrap exercises")
+    parser.add_argument('-d', dest='debug', action='store_true', help='Bootstrap to the QA db')
+    args = parser.parse_args()
 
-for category in exercises['exercise_categories']:
-    session.add(models.ExerciseCategory(**category))
-session.commit()
+    session = database.get_connection(args.debug)
+    exercises = json.load(open('exercises.json', 'r'))
 
-for exercise in exercises['exercises']:
-    session.add(models.Exercise(**exercise))
+    for category in exercises['exercise_categories']:
+        session.add(models.ExerciseCategory(**category))
+    session.commit()
 
-session.commit()
+    for exercise in exercises['exercises']:
+        session.add(models.Exercise(**exercise))
+    session.commit()
