@@ -11,7 +11,7 @@ from database import get_connection
 import logging
 
 from coach import Coach
-from music import Player
+from music import ClementinePlayer
 
 logging.basicConfig(level=logging.INFO)
 
@@ -82,23 +82,23 @@ def countdown(exc_time):
         time.sleep(1)
 
 
-def run_exercise(exercise):
+def run_exercise(exercise, player):
     for side in exercise.sides:
         for i in range(exercise.repetition):
-            Player.pause()
+            player.pause()
             Coach.say(exercise.sentence(side=side))
-            Player.play()
+            player.play()
             countdown(exercise.default_time)
 
 
-def run_workout(workout, debug=False):
-    Player.next()
+def run_workout(workout, player, debug=False):
+    player.next()
     for e in workout.workout_exercises:
         e.created_date = datetime.now()
         e.time_per_set = e.exercise.default_time
         e.repetition = e.exercise.repetition
         if not debug:
-            run_exercise(e.exercise)
+            run_exercise(e.exercise, player)
         else:
             logging.info("QA MODE: Running exercise: %s" % e.exercise)
             time.sleep(1)
@@ -116,7 +116,8 @@ if __name__ == '__main__':
     gw = WorkoutGenerator(ses)
     wo = gw.generate_workout(config)
 
-    run_workout(wo, args.debug)
+    # TODO: Find better way of storing the player than sending it in all the method calls
+    run_workout(wo, ClementinePlayer(), args.debug)
 
     ses.add(wo)
     ses.commit()

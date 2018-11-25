@@ -7,20 +7,27 @@ from singleton import Singleton
 
 
 class Player(with_metaclass(Singleton, object)):
-    _player = dbus.SessionBus().get_object('org.mpris.clementine', '/Player')
-    _iface = dbus.Interface(_player, dbus_interface='org.freedesktop.MediaPlayer')
+    def next(self):
+        raise NotImplementedError("Player must implement 'next' method")
 
+    def pause(self):
+        raise NotImplementedError("Player must implement 'pause' method")
+
+    def play(self):
+        raise NotImplementedError("Player must implement 'play' method")
+
+
+class ClementinePlayer(with_metaclass(Singleton, Player)):
     def __init__(self):
+        self._player = dbus.SessionBus().get_object('org.mpris.clementine', '/Player')
+        self._iface = dbus.Interface(self._player, dbus_interface='org.freedesktop.MediaPlayer')
         subprocess.call('clementine -l /home/dseisun/.config/Clementine/Playlists/Workout.xspf', shell=True)
 
-    @staticmethod
-    def next():
-        Player._iface.Next()
+    def next(self):
+        self._iface.Next()
 
-    @staticmethod
-    def pause():
-        Player._iface.Pause()
+    def pause(self):
+        self._iface.Pause()
 
-    @staticmethod
-    def play():
-        Player._iface.Play()
+    def play(self):
+        self._iface.Play()
