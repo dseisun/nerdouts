@@ -82,7 +82,7 @@ def countdown(exc_time):
         time.sleep(1)
 
 
-def run_exercise(exercise, player):
+def run_exercise(exercise):
     for side in exercise.sides:
         for i in range(exercise.repetition):
             player.pause()
@@ -91,14 +91,14 @@ def run_exercise(exercise, player):
             countdown(exercise.default_time)
 
 
-def run_workout(workout, player, debug=False):
+def run_workout(workout, debug=False):
     player.next()
     for e in workout.workout_exercises:
         e.created_date = datetime.now()
         e.time_per_set = e.exercise.default_time
         e.repetition = e.exercise.repetition
         if not debug:
-            run_exercise(e.exercise, player)
+            run_exercise(e.exercise)
         else:
             logging.info("QA MODE: Running exercise: %s" % e.exercise)
             time.sleep(1)
@@ -115,9 +115,10 @@ if __name__ == '__main__':
     config = Config(args.workout, args.time)
     gw = WorkoutGenerator(ses)
     wo = gw.generate_workout(config)
+    global player
+    player = ClementinePlayer()
 
-    # TODO: Find better way of storing the player than sending it in all the method calls
-    run_workout(wo, ClementinePlayer(), args.debug)
+    run_workout(wo, args.debug)
 
     ses.add(wo)
     ses.commit()
