@@ -117,8 +117,10 @@ if __name__ == '__main__':
     wo = gw.generate_workout(config)
     global player
     player = ClementinePlayer()
-
+    start = time.time()
     run_workout(wo, args.debug)
+    end = time.time()
 
     ses.add(wo)
     ses.commit()
+    logging.info('Workout took a total of: %.0f seconds', end-start)
