@@ -74,10 +74,10 @@ class WorkoutGenerator(object):
         cat_excercises = self.shuffled_grouped_exercises[cat.id]
         for i in count():
             exc = cat_excercises[i % len(cat_excercises)]
-            if category_time > exc.time and exc.id not in set(
-                         map(lambda exc: exc.id, blacklisted_exercises)):
-                exc_list.append(exc)
-                category_time -= exc.time
+            if category_time > exc.time:
+                if exc.id not in set(map(lambda exc: exc.id, blacklisted_exercises)):
+                    exc_list.append(exc)
+                    category_time -= exc.time
             else:
                 break
         return exc_list
