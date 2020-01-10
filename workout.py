@@ -92,8 +92,8 @@ def countdown(exc_time):
 
 
 def run_exercise(exercise):
-    for side in exercise.sides:
-        for i in range(exercise.repetition):
+    for i in range(exercise.repetition):
+        for side in exercise.sides:
             player.pause()
             Coach.say(exercise.sentence(side=side))
             player.play()
