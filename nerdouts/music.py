@@ -19,8 +19,8 @@ class Player(with_metaclass(Singleton, object)):
 
 class ClementinePlayer(with_metaclass(Singleton, Player)):
     def __init__(self):
-        self._player = dbus.SessionBus().get_object('org.mpris.clementine', '/Player')
-        self._iface = dbus.Interface(self._player, dbus_interface='org.freedesktop.MediaPlayer')
+        self._player = dbus.SessionBus().get_object('org.mpris.MediaPlayer2.clementine', '/org/mpris/MediaPlayer2')
+        self._iface = dbus.Interface(self._player, dbus_interface='org.mpris.MediaPlayer2.Player')
         subprocess.call('clementine -l /home/dseisun/.config/Clementine/Playlists/Workout.xspf', shell=True)
 
     def next(self):
