@@ -1,6 +1,7 @@
 import subprocess
 
-import dbus
+# TODO Fix broken dbus import
+# import dbus
 from six import with_metaclass
 
 from singleton import Singleton

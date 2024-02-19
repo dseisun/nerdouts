@@ -1,0 +1,5 @@
+
+workouts = {
+    'name': "",
+    'workout': ...
+}
