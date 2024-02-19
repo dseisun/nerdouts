@@ -6,10 +6,11 @@
 # TODO Remove usage of global "player"
 # TODO Try to implement spotify player
 # TODO Learn about AppleScript - https://chat.openai.com/c/7df9f2e4-2f20-475b-8d4d-534a72301475
-
+# TODO You need to unify your db model Exercise class and your StaticExercise class
 
 #!/usr/bin/env python
 import argparse
+from typing import List
 from config import Config
 
 from datetime import datetime
@@ -19,21 +20,27 @@ import logging
 from generate_dynamic_workout import GenerateDynamicWorkout
 
 from speech import countdown, get_speech_engine
-from music import ClementinePlayer
+import music
+
+DEFAULT_MUSIC_PLAYER = music.SpotifyPlayer()
 
 logging.basicConfig(level=logging.INFO)
 
+# TODO: This relies on duck typing to work with StaticExercise and Exercise
+def run_exercise(exercise, tts, player, debug=False):
+    if not debug:
+        for i in range(exercise.repetition):
+            for side in exercise.sides:
+                player.pause()
+                tts(exercise.sentence(side=side))
+                player.play()
+                countdown(exercise.default_time)
+    else:
+        logging.info("QA MODE: Running exercise: %s" % exercise.name)
+        time.sleep(1)
 
-def run_exercise(exercise):
-    for i in range(exercise.repetition):
-        for side in exercise.sides:
-            player.pause()
-            tts(exercise.sentence(side=side))
-            player.play()
-            countdown(exercise.default_time)
-
-
-def run_workout(workout, tts, debug=False):
+#TODO This needs to be fixed to work with the new argparse format. 
+def run_dynamic_workout(workout, tts, debug=False):
     player.next()
     for e in workout.workout_exercises:
         e.created_date = datetime.now()
@@ -46,25 +53,48 @@ def run_workout(workout, tts, debug=False):
             time.sleep(1)
     tts('Workout finished')
 
-def parse_subargs():
-    p2 = argparse.ArgumentParser(prog='Workout with static workouts')
-    subparsers = p2.add_subparsers(help='this is a test', required=True, dest='cmd')
+#TODO: Implement
+def run_static_workout(args: argparse.Namespace):
+    from static_workouts import workouts
+    tts = get_speech_engine()
+    exercises = workouts[args.workout]
+    for exc in exercises:
+        run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER, debug=args.debug)
+
+    
+
+def run_genstat(args: argparse.Namespace):
+    from generate_static_workout import static_workout_generator
+    output = static_workout_generator()
+    for i in output:
+        print(i)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(prog='Workout with static workouts')
+    parser.add_argument('-d', dest='debug', action='store_true', help='Run in debug mode.')
+    subparsers = parser.add_subparsers(help='this is a test', required=True, dest='cmd')
+
     dynamic = subparsers.add_parser('dynamic', help='test')
     dynamic.add_argument('-t', dest='time', type=int, help='Length (of time) of workout in minutes', required=True)
     dynamic.add_argument('-w', dest='workout', type=str, help='Workout config JSON', nargs='?', default='config.json')
-    dynamic.add_argument('-d', dest='debug', action='store_true', help='Run in debug mode.')
-    
+    dynamic.set_defaults(func=run_dynamic_workout)
+
     static = subparsers.add_parser('static', help='Run a predetermined workout. No config needed')
     static.add_argument('-w', dest='workout', type=str, help="The name of the workout as defined in static_workouts.py", required=True)
-    static.add_argument('-d', dest='debug', action='store_true', help='Run in debug mode.')
+    static.set_defaults(func=run_static_workout)
+
+    genstat = subparsers.add_parser('genstat', help='Generate a static workout from a set of exercises')
+    genstat.add_argument('-e', dest='exercise_file', type=str, help="The path of the json file containing the master list of workouts", required=True)
+    genstat.set_defaults(func=run_genstat)
+    return parser.parse_args()
 
 
-    return p2.parse_args()
 
 if __name__ == '__main__':
     
-    args = parse_subargs()
-    
+    args: argparse.Namespace = parse_args()
+    args.func(args)
 
     
     # ses = get_connection(args.debug)
