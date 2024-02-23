@@ -3,10 +3,11 @@
         # TODO Decide whether your source of exercises is in the database or json file
             # Does each workout have the ability to define a source? E.g. one could be from the db, one from a file?
 # TODO Write tests
-# TODO Remove usage of global "player"
-# TODO Try to implement spotify player
 # TODO Learn about AppleScript - https://chat.openai.com/c/7df9f2e4-2f20-475b-8d4d-534a72301475
-# TODO You need to unify your db model Exercise class and your StaticExercise class
+# TODO Actually have static exercises write to a db
+# TODO Support sqlite or other db types
+# TODO show overall workout time to start
+# TODO Decide to either use curses or website for display
 
 #!/usr/bin/env python
 import argparse
@@ -62,7 +63,6 @@ def run_static_workout(args: argparse.Namespace):
         run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER, debug=args.debug)
 
     
-
 def run_genstat(args: argparse.Namespace):
     from generate_static_workout import static_workout_generator
     output = static_workout_generator()

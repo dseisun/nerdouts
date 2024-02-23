@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import patch
 import json
 import generate_static_workout
-TEST_EXERCISE_PATH = 'test_exercises.json'
+import os
+TEST_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_exercises.json')
 exercises = json.load(open(TEST_EXERCISE_PATH, 'r'))
 
 class TestLoadExercisesFromJson(unittest.TestCase):

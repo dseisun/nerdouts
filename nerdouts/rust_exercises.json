@@ -231,16 +231,6 @@
   },
   {
     "date_added": "2017-01-12 19:34:08",
-    "name": "Squats",
-    "category_id": "strength",
-    "side": "Null",
-    "default_time": 40,
-    "repetition": 2,
-    "prompt": "15 {name}",
-    "long_desc": ""
-  },
-  {
-    "date_added": "2017-01-12 19:34:08",
     "name": "Quad Stretch",
     "category_id": "stretch",
     "side": "Both",
@@ -628,5 +618,65 @@
     "repetition": 1,
     "prompt": "{name}. {side} side.",
     "long_desc": ""
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Squats",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "8 squats. ",
+    "long_desc": "Was prescribed for PT. Hold a weight or your hands above your head"
+  },
+  {
+    "date_added": "2023-10-26 11:05:00",
+    "name": "Shadow boxing",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Stand upright and punch out."
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Kickstand Hip Hinge",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 3,
+    "prompt": "{name}. 8 reps. {side} side.",
+    "long_desc": "From PT: https://www.youtube.com/watch?v=Y35uZjgRjo8"
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Hip mobilization",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. Two sets of 10 reps with 3 second hold. {side} side.",
+    "long_desc": "From PT: https://www.youtube.com/watch?v=ENAhe6DrYTA&t=2s&ab_channel=TheBarbellPhysio"
+  },
+  {
+    "date_added": "2023-10-26 11:15:00",
+    "name": "Arm Swings",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 2,
+    "prompt": "{name}",
+    "long_desc": "Stand with feet shoulder-width apart. Swing arms forward and up, then swing them back and down in a rhythmic motion."
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Half Kneeling Hip Weightshift",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. 10 reps with 3 seconds hold. {side} side.",
+    "long_desc": "From PT: https://www.youtube.com/watch?v=7v66OjPtzcQ"
   }
 ]
