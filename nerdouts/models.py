@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -42,14 +42,15 @@ class ExerciseCategory(Base):
 class Exercise(Base):
     __tablename__ = 'exercise'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    created_date = Column(DateTime, default=datetime.now())
-    name = Column(String(255))
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    created_date: Mapped[datetime] = mapped_column(default=datetime.now())
+    name: Mapped[str]
     category_id = Column(ForeignKey("exercise_category.id"))
-    side = Column(String(10))
-    default_time = Column(Integer)
-    repetition = Column(Integer)
-    prompt = Column(String(1024))    
+    side: Mapped[str]
+    default_time: Mapped[int]
+    repetition: Mapped[int]
+    prompt: Mapped[str]
+    long_desc: Mapped[str]
     workout_exercises = relationship("WorkoutExercise", back_populates='exercise')
 
     def sentence(self, side=''):
