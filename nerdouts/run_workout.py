@@ -13,7 +13,7 @@
 import argparse
 from typing import List
 from config import Config
-
+import utils
 from datetime import datetime
 import time
 from database import get_connection
@@ -59,6 +59,8 @@ def run_static_workout(args: argparse.Namespace):
     from static_workouts import workouts
     tts = get_speech_engine()
     exercises = workouts[args.workout]
+    
+    tts('Workout should take: %s minutes' % int(utils.get_workout_length(exercises) / 60))
     for exc in exercises:
         run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER, debug=args.debug)
 
