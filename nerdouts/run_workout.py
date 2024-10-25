@@ -8,6 +8,7 @@
 # TODO Support sqlite or other db types
 # TODO show overall workout time to start
 # TODO Decide to either use curses or website for display
+# TODO Add pydantic for validation?
 
 #!/usr/bin/env python
 import argparse
@@ -27,7 +28,9 @@ DEFAULT_MUSIC_PLAYER = music.SpotifyPlayer()
 
 logging.basicConfig(level=logging.INFO)
 
-# TODO: This relies on duck typing to work with StaticExercise and Exercise
+# TODO Support "pause" exercises. Exercises with a default time, but that 
+# don't countdown and instead rely on user input to move forward 
+# E.g. Jump rope or ladder exercise
 def run_exercise(exercise, tts, player, debug=False):
     if not debug:
         for i in range(exercise.repetition):
@@ -63,6 +66,8 @@ def run_static_workout(args: argparse.Namespace):
     tts('Workout should take: %s minutes' % int(utils.get_workout_length(exercises) / 60))
     for exc in exercises:
         run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER, debug=args.debug)
+    tts('Workout finished. You''re going to be so jacked')
+    
 
     
 def run_genstat(args: argparse.Namespace):

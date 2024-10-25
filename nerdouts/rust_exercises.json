@@ -30,6 +30,16 @@
     "long_desc": "Stand in place, and high kick to meet your opposite hand"
   },
   {
+    "date_added": "2024-08-10 19:34:08",
+    "name": "Wall clamshell",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}",
+    "long_desc": "https://www.youtube.com/watch?v=hbxmXfPADTM"
+  },
+  {
     "date_added": "2017-01-12 19:34:08",
     "name": "Curls",
     "category_id": "strength",
@@ -474,7 +484,7 @@
     "name": "Roller on the quad",
     "category_id": "rolling",
     "side": "Both",
-    "default_time": 120,
+    "default_time": 60,
     "repetition": 1,
     "prompt": "{name}. {side} side.",
     "long_desc": ""
@@ -632,7 +642,7 @@
   {
     "date_added": "2023-10-26 11:05:00",
     "name": "Shadow boxing",
-    "category_id": "stretch",
+    "category_id": "strength",
     "side": "Null",
     "default_time": 60,
     "repetition": 1,
@@ -642,17 +652,17 @@
   {
     "date_added": "2023-11-19 19:34:08",
     "name": "Kickstand Hip Hinge",
-    "category_id": "strength",
+    "category_id": "physical_therapy",
     "side": "Both",
-    "default_time": 60,
+    "default_time": 45,
     "repetition": 3,
-    "prompt": "{name}. 8 reps. {side} side.",
+    "prompt": "{name}. 3 reps. {side} side.",
     "long_desc": "From PT: https://www.youtube.com/watch?v=Y35uZjgRjo8"
   },
   {
     "date_added": "2023-11-19 19:34:08",
     "name": "Hip mobilization",
-    "category_id": "stretch",
+    "category_id": "physical_therapy",
     "side": "Both",
     "default_time": 60,
     "repetition": 2,
@@ -662,7 +672,7 @@
   {
     "date_added": "2023-10-26 11:15:00",
     "name": "Arm Swings",
-    "category_id": "stretch",
+    "category_id": "strength",
     "side": "Null",
     "default_time": 45,
     "repetition": 2,
@@ -672,11 +682,121 @@
   {
     "date_added": "2023-11-19 19:34:08",
     "name": "Half Kneeling Hip Weightshift",
-    "category_id": "stretch",
+    "category_id": "physical_therapy",
     "side": "Both",
     "default_time": 60,
     "repetition": 2,
     "prompt": "{name}. 10 reps with 3 seconds hold. {side} side.",
     "long_desc": "From PT: https://www.youtube.com/watch?v=7v66OjPtzcQ"
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Lateral lunge",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "From PT."
+  },
+  {
+    "date_added": "2024-04-05 19:34:08",
+    "name": "Copenhagen",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "From PT."
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Plank with leg lift",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "Tall plank with leg lift. {side} side. 50 seconds",
+    "long_desc": "Plank on elbows or arms. Lift one leg at a time per side"
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Half Kneeling Hip Flexor Stretch",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}. {side} side. 50 seconds",
+    "long_desc": "Ninja stretch"
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Quadraped rockback",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Bridge on wall",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 35,
+    "repetition": 3,
+    "prompt": "{name} - 3 sets of 5 reps.",
+    "long_desc": "Bridge on Wall (knee hug) - from the PT office. Keep your heel flat and avoid using your back"
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Split squat",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Should get a strong stretch through the front of the quad"
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Standing Hip Hinge",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "{name}. 3 reps.",
+    "long_desc": "Bend at the waist"
+  }, 
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Hip lift",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "Hip lift. Put knee on block and raise other knee using hip. 3 reps.",
+    "long_desc": "On all fours put one knee on a block. With both sets of toes touching the ground lift the other hip and hold for 3 seconds"
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Hip rockback",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. . ",
+    "long_desc": "On all fours rock back on until your butt touches your feet"
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Hamstring extender",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. 2 sets of 10 reps with 3 second hold. {side} side",
+    "long_desc": "https://www.youtube.com/watch?v=OIF9cNC9c6I"
   }
 ]
