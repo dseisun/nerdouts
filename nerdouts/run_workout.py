@@ -1,7 +1,7 @@
+#!/usr/bin/env python
 # TODO Extend workout generator to generate a pre-defined workout
-    # TODO Support generating a static workout
-        # TODO Decide whether your source of exercises is in the database or json file
-            # Does each workout have the ability to define a source? E.g. one could be from the db, one from a file?
+    # TODO Decide whether your source of exercises is in the database or json file
+        # Does each workout have the ability to define a source? E.g. one could be from the db, one from a file?
 # TODO Write tests
 # TODO Learn about AppleScript - https://chat.openai.com/c/7df9f2e4-2f20-475b-8d4d-534a72301475
 # TODO Actually have static exercises write to a db
@@ -9,8 +9,6 @@
 # TODO show overall workout time to start
 # TODO Decide to either use curses or website for display
 # TODO Add pydantic for validation?
-
-#!/usr/bin/env python
 import argparse
 from typing import List
 from config import Config
@@ -38,10 +36,13 @@ def run_exercise(exercise, tts, player, debug=False):
                 player.pause()
                 tts(exercise.sentence(side=side))
                 player.play()
-                countdown(exercise.default_time)
+                if countdown(exercise.default_time):  # Check if exercise was skipped
+                    logging.info("Exercise skipped by user")
+                    return True  # Return True to indicate skip
     else:
         logging.info("QA MODE: Running exercise: %s" % exercise.name)
         time.sleep(1)
+    return False  # Return False to indicate normal completion
 
 #TODO This needs to be fixed to work with the new argparse format. 
 def run_dynamic_workout(workout, tts, debug=False):
@@ -57,7 +58,6 @@ def run_dynamic_workout(workout, tts, debug=False):
             time.sleep(1)
     tts('Workout finished')
 
-#TODO: Implement
 def run_static_workout(args: argparse.Namespace):
     from static_workouts import workouts
     tts = get_speech_engine()
@@ -65,7 +65,9 @@ def run_static_workout(args: argparse.Namespace):
     
     tts('Workout should take: %s minutes' % int(utils.get_workout_length(exercises) / 60))
     for exc in exercises:
-        run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER, debug=args.debug)
+        skipped = run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER, debug=args.debug)
+        if skipped:
+            logging.info(f"Skipped exercise: {exc.name}")
     tts('Workout finished. You''re going to be so jacked')
     
 

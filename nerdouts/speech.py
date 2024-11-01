@@ -3,6 +3,7 @@ import subprocess
 import sys
 import time
 from typing import Callable
+import select
 
 
 def get_speech_engine() -> Callable[..., None]:
@@ -22,10 +23,23 @@ def get_speech_engine() -> Callable[..., None]:
         raise Exception('Sorry, no text to speech interface found for your operating system')
 
 
+def is_data():
+    """Check if there is data waiting on stdin."""
+    return select.select([sys.stdin], [], [], 0.1)[0] != []
+
+
 def countdown(exc_time):
-    tts = get_speech_engine()
+    tts = get_speech_engine()        
     for sec in range(exc_time):
-        print(" %d seconds until the next exercise    " % (exc_time - sec), end='\r')
+        print(" %d seconds until the next exercise (press 's' to skip)    " % (exc_time - sec), end='\r')
+        time.sleep(1)
+        if is_data():
+                c = sys.stdin.read(1)
+                if c == 's':  # Skip if 's' is pressed
+                    print("\nSkipping exercise...")
+                    return True  # Return True to indicate skip
+        
         if exc_time - sec == 10:
             tts("10 Seconds left")
-        time.sleep(1)
+                    
+    return False  # Return False to indicate normal completion
