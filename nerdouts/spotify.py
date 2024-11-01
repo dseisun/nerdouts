@@ -15,7 +15,3 @@ def next_track():
 
 def previous_track():
     run_applescript('tell application "Spotify" to previous track')
-
-# Example Usage
-# play_spotify()
-pause_spotify()

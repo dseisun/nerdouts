@@ -1,302 +1,802 @@
-{
-  "exercise_categories": [
+[
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Butt Kickers",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Running in place while kicking your butt"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Clamshells",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "10 {name}. {side} side. Keep the knee in line",
+    "long_desc": "Lay on your side and with a band around your knees open and close your knees"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "High Kicks",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Stand in place, and high kick to meet your opposite hand"
+  },
+  {
+    "date_added": "2024-08-10 19:34:08",
+    "name": "Wall clamshell",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}",
+    "long_desc": "https://www.youtube.com/watch?v=hbxmXfPADTM"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Curls",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 3,
+    "prompt": "{name}",
+    "long_desc": "Normal bicep curls"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Calf Stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 40,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "Do both upper and lower calf by bending the knee"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Calf Lifts",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "10 {name}. Do kegals as you lift",
+    "long_desc": "Can be done just standing, but is better with an edge to keep only your toes on, like stairs"
+  },
+  {
+    "date_added": "2023-12-06 00:00:00",
+    "name": "Cobra pose",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 20,
+    "repetition": 3,
+    "prompt": "{name}.",
+    "long_desc": "Lay face down and lift your head up as much as possible. Let your hands float"
+  },
+  {
+    "date_added": "2023-12-06 00:00:00",
+    "name": "Jump rope",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}.",
+    "long_desc": "Either with an actual rope or simulated rope"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Bird bops",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "AKA the drinking bird. Keep your back straight, stand on one leg, and bend down until your back is perpendicular to your leg. You can keep your arms either straight out above your head, or carry a weight in one or both of them"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "20 normal Pushups",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Butterfly Stretch",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Sit in butterfly position and push knees down towards the ground"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Bridge",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 30,
+    "repetition": 1,
+    "prompt": "{name}. 5 reps",
+    "long_desc": "Bridge and hold for 5 seconds"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "One foot bridge",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 1,
+    "prompt": "{name}. {side} side. 5 reps",
+    "long_desc": "Bridge and hold on one leg for 5 seconds"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Diagonal backward fondas",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}. {side} side. 10 reps",
+    "long_desc": "Lay on your side and move your leg up and backwards"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Situps",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 80,
+    "repetition": 1,
+    "prompt": "{name}. 50 reps",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "20 incline Pushups",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Band Walk",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 80,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Side to side shuffle with a band around your knees"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Straight Plank",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}. 50 seconds",
+    "long_desc": "Plank on elbows or arms"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Side Plank",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 65,
+    "repetition": 1,
+    "prompt": "{name}. {side} side. 50 seconds",
+    "long_desc": "Plank on elbows or arms"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Leg circles",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 10,
+    "repetition": 4,
+    "prompt": "{name}. {side} side. Switch direction every other one",
+    "long_desc": "Lay on your side and put your leg in circles. Don't use your ankle"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Roller on the back",
+    "category_id": "rolling",
+    "side": "Null",
+    "default_time": 80,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Legs crossed stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Ninja stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Quad Stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 40,
+    "repetition": 1,
+    "prompt": "{name}. {side} side",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Narrow Pushups",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Band Skaters",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "Band around ankles and move ankle back 45 degrees"
+  },
     {
-      "id": 1,
-      "name": "physical_therapy"
-    },
-    {
-      "id": 2,
-      "name": "stretch"
-    },
-    {
-      "id": 3,
-      "name": "strength"
-    },
-    {
-      "id": 4,
-      "name": "rolling"
-    }
-  ],
-  "exercises": [
-    {
-      "name": "Butt Kickers",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 30,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Clamshells",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 30,
-      "repetition": 2,
-      "prompt": "10 {name}. {side} side. Keep the knee in line"
-    },
-    {
-      "name": "High Kicks",
-      "category_id": "2",
-      "side": "Null",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Curls",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 60,
-      "repetition": 3,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Calf Stretch",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 40,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Calf Lifts",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 30,
-      "repetition": 3,
-      "prompt": "10 {name}"
-    },
-    {
-      "name": "Bird bops",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Normal Pushups",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Butterfly Stretch",
-      "category_id": "2",
-      "side": "Null",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Groin flex",
-      "category_id": "1",
-      "side": "Null",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}. 10 reps of 5 seconds"
-    },
-    {
-      "name": "Bridge",
-      "category_id": "1",
-      "side": "Null",
-      "default_time": 20,
-      "repetition": 1,
-      "prompt": "{name}. 10 reps"
-    },
-    {
-      "name": "One foot bridge",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 15,
-      "repetition": 1,
-      "prompt": "{name}. {side} side. 10 reps"
-    },
-    {
-      "name": "Diagonal backward fondas",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 25,
-      "repetition": 2,
-      "prompt": "{name}. {side} side. 10 reps"
-    },
-    {
-      "name": "Situps",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 80,
-      "repetition": 1,
-      "prompt": "{name}. 50 reps"
-    },
-    {
-      "name": "Incline Pushups",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Band Walk",
-      "category_id": "1",
-      "side": "Null",
-      "default_time": 80,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Straight Plank",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 55,
-      "repetition": 1,
-      "prompt": "{name}. 50 seconds"
-    },
-    {
-      "name": "Side Plank",
-      "category_id": "3",
-      "side": "Both",
-      "default_time": 55,
-      "repetition": 1,
-      "prompt": "{name}. {side} side. 50 seconds"
-    },
-    {
-      "name": "Leg circles",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 10,
-      "repetition": 4,
-      "prompt": "{name}. {side} side. Switch direction every other one"
-    },
-    {
-      "name": "Roller on the back",
-      "category_id": "4",
-      "side": "Null",
-      "default_time": 80,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Legs crossed stretch",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Ninja stretch",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Squats",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 40,
-      "repetition": 2,
-      "prompt": "15 {name}"
-    },
-    {
-      "name": "Quad Stretch",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 40,
-      "repetition": 1,
-      "prompt": "{name}. {side} side"
-    },
-    {
-      "name": "Narrow Pushups",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 50,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Skaters",
-      "category_id": "1",
-      "side": "Both",
-      "default_time": 30,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Pullups",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 60,
-      "repetition": 1,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Roller on the groin",
-      "category_id": "4",
-      "side": "Both",
-      "default_time": 55,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Lacrosse Ball on the groin",
-      "category_id": "4",
-      "side": "Both",
-      "default_time": 55,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Half Roller Squats",
-      "category_id": "3",
-      "side": "Both",
-      "default_time": 35,
-      "repetition": 2,
-      "prompt": "{name}. {side} side"
-    },
-    {
-      "name": "Back curls",
-      "category_id": "3",
-      "side": "Null",
-      "default_time": 30,
-      "repetition": 3,
-      "prompt": "{name}"
-    },
-    {
-      "name": "Roller on the glutes",
-      "category_id": "4",
-      "side": "Both",
-      "default_time": 60,
-      "repetition": 1,
-      "prompt": "{name}. {side} side"
-    },
-    {
-      "name": "Warrior 2",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 30,
-      "repetition": 2,
-      "prompt": "{name}. {side} side"
-    },
-    {
-      "name": "Hamstring stretch",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 40,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    },
-    {
-      "name": "Knee to chest stretch",
-      "category_id": "2",
-      "side": "Both",
-      "default_time": 40,
-      "repetition": 1,
-      "prompt": "{name}. {side} side."
-    }
-  ]
-}
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Skater jumps",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "https://www.youtube.com/watch?v=JQUqVHxbYEw&ab_channel=ReactPhysicalTherapy"
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Pullups",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Roller on the groin",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Lacrosse Ball on the groin",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-16 00:00:00",
+    "name": "Half Roller Squats",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 35,
+    "repetition": 2,
+    "prompt": "{name}. {side} side",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-16 00:00:00",
+    "name": "Back curls",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-17 21:05:28",
+    "name": "Roller on the glutes",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-26 22:00:00",
+    "name": "Warrior 2",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}. {side} side",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-01-31 00:00:00",
+    "name": "Hamstring stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 40,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-02-12 00:00:00",
+    "name": "Knee to chest stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 40,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-03-06 00:00:00",
+    "name": "Squat hold",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 40,
+    "repetition": 2,
+    "prompt": "{name}. Take 10 seconds off in between.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-03-06 00:00:00",
+    "name": "Dips",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}. 10 reps",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-03-06 00:00:00",
+    "name": "Bicycle crunches",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 80,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-03-06 00:00:00",
+    "name": "Mountain climbers",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 40,
+    "repetition": 2,
+    "prompt": "10 {name} each side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-03-06 00:00:00",
+    "name": "Lunges",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2017-03-14 00:00:00",
+    "name": "Hand roller on the groin",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Inner thigh roll",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Lacrosse ball on hip",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Hamstring Roller",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Lacrosse ball on upper knee",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Lacrosse ball behind knee",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Roller on the quad",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-10-11 00:00:00",
+    "name": "Lacrosse ball on glutes",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2018-12-20 00:00:00",
+    "name": "Calf roller",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 50,
+    "repetition": 1,
+    "prompt": "{name}. {side} side",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Groin Squeeze",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 65,
+    "repetition": 3,
+    "prompt": "Groin squeeze. 60 seconds. Get wider between each rep",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Hip mobility",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. Bend {side} side in. ",
+    "long_desc": "Sit upright with your legs apart and knees bent at 90 degrees. Bend one knee in until you feel a stretch"
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Glute raises",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 100,
+    "repetition": 2,
+    "prompt": "{name}. {side} side. 10 reps",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2020-01-01 00:00:00",
+    "name": "Supine glute stretch",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}. {side} side",
+    "long_desc": "Lay on back and place right foot ankle on left knee and grab behind the knee. https://www.sweat.com/blogs/fitness/glute-stretches"
+  },
+  {
+    "date_added": "2020-01-01 00:00:00",
+    "name": "1 legged squats",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 50,
+    "repetition": 3,
+    "prompt": "{name}. {side} side. 10 reps",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2019-01-06 00:00:00",
+    "name": "Ottoman step ups",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 3,
+    "prompt": "{name}. {side} side. 10 reps",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2023-010-04 00:00:00",
+    "name": "Dumbbell bench press",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 3,
+    "prompt": "{name}",
+    "long_desc": "Sitting on a bench use dumbbells to do a bench press"
+  },
+  {
+    "date_added": "2023-010-04 00:00:00",
+    "name": "Downward dog",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "5 seconds downward dog to yoga push up pose"
+  },
+  {
+    "date_added": "2023-010-04 00:00:00",
+    "name": "Up downs",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Go from arm extended plank pose, to plank on elbows and back"
+  },
+  {
+    "date_added": "2023-010-04 00:00:00",
+    "name": "Ladder",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. 2 reps",
+    "long_desc": "Roll out the ladder and run 1-2 patterns on it"
+  },
+  {
+    "date_added": "2023-11-13 00:00:00",
+    "name": "Jumping jacks",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Roller on the it band",
+    "category_id": "rolling",
+    "side": "Both",
+    "default_time": 35,
+    "repetition": 1,
+    "prompt": "{name}. {side} side.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Squats",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "8 squats. ",
+    "long_desc": "Was prescribed for PT. Hold a weight or your hands above your head"
+  },
+  {
+    "date_added": "2023-10-26 11:05:00",
+    "name": "Shadow boxing",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Stand upright and punch out."
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Kickstand Hip Hinge",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "{name}. 3 reps. {side} side.",
+    "long_desc": "From PT: https://www.youtube.com/watch?v=Y35uZjgRjo8"
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Hip mobilization",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. Two sets of 10 reps with 3 second hold. {side} side.",
+    "long_desc": "From PT: https://www.youtube.com/watch?v=ENAhe6DrYTA&t=2s&ab_channel=TheBarbellPhysio"
+  },
+  {
+    "date_added": "2023-10-26 11:15:00",
+    "name": "Arm Swings",
+    "category_id": "strength",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 2,
+    "prompt": "{name}",
+    "long_desc": "Stand with feet shoulder-width apart. Swing arms forward and up, then swing them back and down in a rhythmic motion."
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Half Kneeling Hip Weightshift",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. 10 reps with 3 seconds hold. {side} side.",
+    "long_desc": "From PT: https://www.youtube.com/watch?v=7v66OjPtzcQ"
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Lateral lunge",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "From PT."
+  },
+  {
+    "date_added": "2024-04-05 19:34:08",
+    "name": "Copenhagen",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}. {side} side.",
+    "long_desc": "From PT."
+  },
+  {
+    "date_added": "2017-01-12 19:34:08",
+    "name": "Plank with leg lift",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "Tall plank with leg lift. {side} side. 50 seconds",
+    "long_desc": "Plank on elbows or arms. Lift one leg at a time per side"
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Half Kneeling Hip Flexor Stretch",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}. {side} side. 50 seconds",
+    "long_desc": "Ninja stretch"
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Quadraped rockback",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}.",
+    "long_desc": ""
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Bridge on wall",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 35,
+    "repetition": 3,
+    "prompt": "{name} - 3 sets of 5 reps.",
+    "long_desc": "Bridge on Wall (knee hug) - from the PT office. Keep your heel flat and avoid using your back"
+  },
+  {
+    "date_added": "2024-04-12 19:34:08",
+    "name": "Split squat",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 55,
+    "repetition": 1,
+    "prompt": "{name}",
+    "long_desc": "Should get a strong stretch through the front of the quad"
+  },
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Standing Hip Hinge",
+    "category_id": "physical_therapy",
+    "side": "Null",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "{name}. 3 reps.",
+    "long_desc": "Bend at the waist"
+  }, 
+  {
+    "date_added": "2023-11-19 19:34:08",
+    "name": "Hip lift",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 45,
+    "repetition": 3,
+    "prompt": "Hip lift. Put knee on block and raise other knee using hip. 3 reps.",
+    "long_desc": "On all fours put one knee on a block. With both sets of toes touching the ground lift the other hip and hold for 3 seconds"
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Hip rockback",
+    "category_id": "stretch",
+    "side": "Null",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. . ",
+    "long_desc": "On all fours rock back on until your butt touches your feet"
+  },
+  {
+    "date_added": "2019-12-27 00:00:00",
+    "name": "Hamstring extender",
+    "category_id": "stretch",
+    "side": "Both",
+    "default_time": 60,
+    "repetition": 2,
+    "prompt": "{name}. 2 sets of 10 reps with 3 second hold. {side} side",
+    "long_desc": "https://www.youtube.com/watch?v=OIF9cNC9c6I"
+  }
+]

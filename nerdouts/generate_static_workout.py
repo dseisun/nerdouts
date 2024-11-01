@@ -6,11 +6,11 @@ import os
 
 from models import Exercise
 
-DEFAULT_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'./rust_exercises.json')
+DEFAULT_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'./exercises.json')
 
 def load_exercises_from_json(path=DEFAULT_EXERCISE_PATH) -> List[Exercise]:
-    with open(path, 'r') as rust_exc:
-        payload = json.load(rust_exc)
+    with open(path, 'r') as exc:
+        payload = json.load(exc)
     exercises = []
     for exc in payload:
         exercises.append(

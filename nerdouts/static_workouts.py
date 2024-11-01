@@ -4,6 +4,8 @@ from generate_static_workout import get_exercise_by_name, load_exercises_from_js
 from models import Exercise
 get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_json())
 
+from exercise_vars import *
+
 workouts: dict[str, List[Exercise]] = {
     'sample': [
         get_by_name("Clamshells"),
@@ -30,8 +32,9 @@ workouts: dict[str, List[Exercise]] = {
     ],
 
     'day_1': [
-            get_by_name("Shadow boxing"),
-            get_by_name("Hip rockback"),
+            SHADOW_BOXING,
+            CURLS,
+            HIP_ROCKBACK,
             get_by_name("Hamstring extender"),
             get_by_name("Situps"),
             get_by_name("Downward dog"),
