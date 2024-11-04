@@ -135,8 +135,8 @@
     "category_id": "physical_therapy",
     "side": "Both",
     "default_time": 30,
-    "repetition": 1,
-    "prompt": "{name}. {side} side. 5 reps",
+    "repetition": 2,
+    "prompt": "{name}. 2 sets. {side} side. 5 reps",
     "long_desc": "Bridge and hold on one leg for 5 seconds"
   },
   {
@@ -798,5 +798,35 @@
     "repetition": 2,
     "prompt": "{name}. 2 sets of 10 reps with 3 second hold. {side} side",
     "long_desc": "https://www.youtube.com/watch?v=OIF9cNC9c6I"
+  },
+  {
+    "date_added": "2024-11-02",
+    "name": "Dumbbell rows",
+    "category_id": "strength",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}. 3 sets of 8 reps. {side} side",
+    "long_desc": "https://www.youtube.com/watch?v=gfUg6qWohTk"
+  },
+  {
+    "date_added": "2024-11-02",
+    "name": "Bridge hamstring curl",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 3,
+    "prompt": "{name}. 3 sets of 8 reps. {side} side",
+    "long_desc": "From a bridge, pull one leg in with a slider / towel"
+  },
+  {
+    "date_added": "2024-11-02",
+    "name": "POGO",
+    "category_id": "physical_therapy",
+    "side": "null",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}. 2 reps of 30 seconds",
+    "long_desc": "Bunny hop around for 30 seconds"
   }
 ]

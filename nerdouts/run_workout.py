@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-# TODO Extend workout generator to generate a pre-defined workout
-    # TODO Decide whether your source of exercises is in the database or json file
-        # Does each workout have the ability to define a source? E.g. one could be from the db, one from a file?
+
+# TODO Add git hook to generate static workouts on each commit
+# TODO Support workout "Groups" - e.g. 3 sets of 3 different things where you do 1 set of each at a time
+# TODO Add logging for total workout time to the end (somehow lost it)
+# TODO Decide whether your source of exercises is in the database or json file
+    # Does each workout have the ability to define a source? E.g. one could be from the db, one from a file?
 # TODO Write tests
-# TODO Learn about AppleScript - https://chat.openai.com/c/7df9f2e4-2f20-475b-8d4d-534a72301475
 # TODO Actually have static exercises write to a db
 # TODO Support sqlite or other db types
 # TODO show overall workout time to start
-# TODO Decide to either use curses or website for display
+# TODO Decide to either use curses or website for display - Website - Ncurses would be crazy
 # TODO Add pydantic for validation?
 import argparse
 from typing import List

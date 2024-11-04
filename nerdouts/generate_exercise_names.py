@@ -21,6 +21,3 @@ get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_json()
     for i in exercises:
         outfile.write("""{var_name} = get_by_name("{workout_name}")\n"""
                       .format(var_name=name_to_var(i['name']), workout_name=i['name']))
-        
-
-
