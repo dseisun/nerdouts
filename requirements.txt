@@ -1,5 +1,0 @@
-dbus-python==1.2.4;sys_platform=="linux"
-pyyaml>=4.2b1
-SQLAlchemy
-# Optional database dependencies
-mysqlclient==1.4.6
