@@ -1,7 +1,9 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.declarative import declarative_base
+import enum
+from functools import total_ordering
 
 Base = declarative_base()
 
@@ -33,19 +35,36 @@ class Workout(Base):
                 % (self.__tablename__, self.id, self.created_date))
 
 
-class ExerciseCategory(Base):
-    __tablename__ = 'exercise_category'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(255))
+@total_ordering
+class ExerciseCategory(enum.Enum):
+    """Worth noting that the KEY is what is sent to the database
+    However we keep the VALUE set to the same value as the key, because 
+    we instantiate the Enum with ExerciseCategory(VALUE) when we load exercises from 
+    JSON"""
+    physical_therapy = "physical_therapy"
+    stretch = "stretch"
+    strength = "strength"
+    rolling = "rolling"
+
+    def __lt__(self, other):
+        if not isinstance(other, ExerciseCategory):
+            return NotImplemented
+        # Define the order based on the exercise flow
+        order = {
+            ExerciseCategory.physical_therapy: 1,
+            ExerciseCategory.stretch: 2,
+            ExerciseCategory.strength: 3,
+            ExerciseCategory.rolling: 4
+        }
+        return order[self] < order[other]
 
 
 class Exercise(Base):
     __tablename__ = 'exercise'
-
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     created_date: Mapped[datetime] = mapped_column(default=datetime.now())
     name: Mapped[str]
-    category_id = Column(ForeignKey("exercise_category.id"))
+    category_id: Mapped[ExerciseCategory] = mapped_column(Enum(ExerciseCategory))
     side: Mapped[str]
     default_time: Mapped[int]
     repetition: Mapped[int]
@@ -70,5 +89,3 @@ class Exercise(Base):
     def __repr__(self):
         return ("<%s (name = %s, repetition = %s, sides = %s, default_time = %s)>"
                 % (self.__tablename__, self.name, self.repetition, self.sides, self.default_time))
-
-

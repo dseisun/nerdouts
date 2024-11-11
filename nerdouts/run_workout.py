@@ -17,7 +17,7 @@ from config import Config
 import utils
 from datetime import datetime
 import time
-from database import get_connection
+from database import get_session
 import logging
 from generate_dynamic_workout import GenerateDynamicWorkout
 
@@ -48,16 +48,10 @@ def run_exercise(exercise, tts, player, debug=False):
 
 #TODO This needs to be fixed to work with the new argparse format. 
 def run_dynamic_workout(workout, tts, debug=False):
-    player.next()
-    for e in workout.workout_exercises:
-        e.created_date = datetime.now()
-        e.time_per_set = e.exercise.default_time
-        e.repetition = e.exercise.repetition
-        if not debug:
-            run_exercise(e.exercise)
-        else:
-            logging.info("QA MODE: Running exercise: %s" % e.exercise)
-            time.sleep(1)
+    from generate_dynamic_workout import GenerateDynamicWorkout
+    from database import get_session
+    session = get_session()
+    GenerateDynamicWorkout(session)
     tts('Workout finished')
 
 def run_static_workout(args: argparse.Namespace):

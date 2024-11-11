@@ -1,9 +1,9 @@
 from functools import partial
 from typing import List
-from generate_static_workout import get_exercise_by_name, load_exercises_from_json
+from generate_static_workout import get_exercise_by_name, load_exercises_from_json, load_exercises_from_db
 from models import Exercise
-get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_json())
-
+# get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_json())
+get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_db())
 from exercise_vars import *
 
 workouts: dict[str, List[Exercise]] = {

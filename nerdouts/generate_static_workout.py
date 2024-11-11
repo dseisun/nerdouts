@@ -3,10 +3,14 @@ from itertools import count, groupby
 from random import random, sample
 import json
 import os
-
+from database import get_session
 from models import Exercise
 
 DEFAULT_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'./exercises.json')
+
+def load_exercises_from_db() -> List[Exercise]:
+    conn = get_session()
+    return conn.query(Exercise).all()
 
 def load_exercises_from_json(path=DEFAULT_EXERCISE_PATH) -> List[Exercise]:
     with open(path, 'r') as exc:

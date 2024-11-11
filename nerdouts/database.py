@@ -1,14 +1,19 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine, Engine
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
 import yaml
+import os
 
 
-def get_connection(is_debug):
-    with open('secrets.yaml') as file:
-        secrets = yaml.load(file)
+def get_engine(is_debug: bool = False) -> Engine:
+    secrets_path = os.path.join(os.path.dirname(__file__), 'secrets.yaml')
+    with open(secrets_path) as file:
+        secrets = yaml.safe_load(file)
         if is_debug:
-            engine = create_engine(secrets['sqlalchemy_connection_string_qa'], echo=True)
+            return create_engine(secrets['sqlalchemy_connection_string_qa'], echo=True)
         else:
-            engine = create_engine(secrets['sqlalchemy_connection_string'], echo=True)
+            return create_engine(secrets['sqlalchemy_connection_string'], echo=True)
 
+
+def get_session(is_debug: bool = False) -> scoped_session[Session]:
+    engine = get_engine(is_debug)
     return scoped_session(sessionmaker(bind=engine))

@@ -1,44 +1,53 @@
-import json
 import logging
+from .models import ExerciseCategory
+from typing import Dict, List, Optional
 
 
-class Config(object):
-    """Object representing a config file/total_time pair. Since these are both arguments to the
-    application, it's the object stating the runtime config of the workout
-    It explicitly doesn't talk to the db
-    Purpose is to have a single interface for getting properies of a config file
-    and a good state store for it"""
+class Config:
+    """Configuration for workout generation, including category weights and time settings"""
+    DEFAULT_CATEGORIES = {
+        ExerciseCategory.physical_therapy: 0.20,
+        ExerciseCategory.stretch: 0.25,
+        ExerciseCategory.strength: 0.35,
+        ExerciseCategory.rolling: 0.20
+    }
 
-    def __init__(self, config_file_path, total_time):
-        with open(config_file_path) as data_file:
-            self.workout_config = json.load(data_file)
+    def __init__(
+        self,
+        total_time: int,
+        categories: Optional[Dict[ExerciseCategory, float]] = None,
+        whitelist: Optional[List[str]] = None,
+        blacklist: Optional[List[str]] = None
+    ):
         self.total_time = total_time
+        self.categories = categories or self.DEFAULT_CATEGORIES.copy()
+        self.whitelist: List[str] = whitelist or []
+        self.blacklist: List[str] = blacklist or []
+
+        # Validate weights sum to 1
+        total_weight = sum(self.categories.values())
+        if abs(total_weight - 1.0) > 0.001:  # Using small epsilon for float comparison
+            raise ValueError(f"Category weights must sum to 1, got {total_weight}")
 
     @property
-    def exercise_category_times(self):
-        """Returns a map of category names to tatal times"""
-        cat_times = {}
-        for category in self.workout_config['categories']:
-            cat_times[category['name']] = self.total_time * 60 * category['weight']
-        self.workout_config['categories']
-        total_cat_weight = sum(map(lambda x: x['weight'], self.workout_config['categories']))
-        # Quick validation that the category weights add up to 100%
-        if total_cat_weight != 1:
-            logging.warning('Total category weight does not add up to 100%. Adds up to %s' %
-                            total_cat_weight)
-        return cat_times
+    def exercise_category_times(self) -> Dict[ExerciseCategory, float]:
+        """Returns a map of category names to total times in seconds"""
+        return {
+            category: self.total_time * 60 * weight
+            for category, weight in self.categories.items()
+        }
 
     @property
-    def whitelisted_exercises(self):
+    def whitelisted_exercises(self) -> List[str]:
         """Exercises that _have_ to be included in the workout.
         Expected behaviour is to add all the exercises even if it goes over time"""
-        return self.workout_config.get("whitelist", [])
+        return self.whitelist
 
     @property
-    def blacklisted_exercises(self):
+    def blacklisted_exercises(self) -> List[str]:
         """Exercises that _have_ to be excluded in the workout.
         This should return a list of exercises that can't be added.
         TODO: Currently input is just a list of id's from the config, but we can expand that to
         blacklisting categories and being more dynamic
         """
-        return self.workout_config.get("blacklist", [])
+        return self.blacklist
