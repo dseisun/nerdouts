@@ -1,7 +1,50 @@
 import logging
-from .models import ExerciseCategory
+from models import ExerciseCategory, Exercise
 from typing import Dict, List, Optional
+from database import set_engine_for_ctx
+from contextlib import contextmanager
 
+class AppContext:
+    """Thread-safe application context for managing global state"""
+    _context: Optional['AppContext'] = None
+
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+        self.engine = set_engine_for_ctx(debug=debug)
+
+        
+        # Configure logging based on debug mode
+        logging.basicConfig(
+            level=logging.DEBUG if debug else logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+    
+    @classmethod
+    def get_current(cls) -> 'AppContext':
+        """Get the current application context"""
+        if cls._context is None:
+            raise RuntimeError("No application context available. Use 'with app_context(debug):'")
+        return cls._context
+    
+    @classmethod
+    def set_current(cls, context: Optional['AppContext']):
+        """Set the current application context"""
+        cls._context = context
+
+@contextmanager
+def app_context(debug: bool = False):
+    """Context manager for application state"""
+    previous_context = AppContext._context
+    context = AppContext(debug=debug)
+    AppContext.set_current(context)
+    try:
+        yield context
+    finally:
+        AppContext.set_current(previous_context)
+
+def get_current_context() -> AppContext:
+    """Helper function to get current application context"""
+    return AppContext.get_current()
 
 class Config:
     """Configuration for workout generation, including category weights and time settings"""
@@ -16,13 +59,13 @@ class Config:
         self,
         total_time: int,
         categories: Optional[Dict[ExerciseCategory, float]] = None,
-        whitelist: Optional[List[str]] = None,
-        blacklist: Optional[List[str]] = None
+        whitelist: List[Exercise] = [],
+        blacklist: List[Exercise] = []
     ):
         self.total_time = total_time
         self.categories = categories or self.DEFAULT_CATEGORIES.copy()
-        self.whitelist: List[str] = whitelist or []
-        self.blacklist: List[str] = blacklist or []
+        self.whitelist = whitelist
+        self.blacklist = blacklist
 
         # Validate weights sum to 1
         total_weight = sum(self.categories.values())
@@ -36,18 +79,3 @@ class Config:
             category: self.total_time * 60 * weight
             for category, weight in self.categories.items()
         }
-
-    @property
-    def whitelisted_exercises(self) -> List[str]:
-        """Exercises that _have_ to be included in the workout.
-        Expected behaviour is to add all the exercises even if it goes over time"""
-        return self.whitelist
-
-    @property
-    def blacklisted_exercises(self) -> List[str]:
-        """Exercises that _have_ to be excluded in the workout.
-        This should return a list of exercises that can't be added.
-        TODO: Currently input is just a list of id's from the config, but we can expand that to
-        blacklisting categories and being more dynamic
-        """
-        return self.blacklist

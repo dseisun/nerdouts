@@ -10,11 +10,11 @@ Base = declarative_base()
 
 class WorkoutExercise(Base):
     __tablename__ = 'workout_exercise'
-    workout_exercise_id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     workout_id = Column(Integer, ForeignKey("workout.id"))
     exercise_id = Column(Integer, ForeignKey("exercise.id"))
-    time_per_set = Column(Integer)
-    repetition = Column(Integer)
+    time_per_set: Mapped[int]
+    repetition: Mapped[int]
     created_date = Column(DateTime, default=datetime.now())
     workout = relationship("Workout", back_populates="workout_exercises")
     exercise = relationship("Exercise", back_populates="workout_exercises")
@@ -22,7 +22,7 @@ class WorkoutExercise(Base):
 
 class Workout(Base):
     __tablename__ = 'workout'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now())
     workout_exercises = relationship("WorkoutExercise", back_populates='workout')
 
@@ -63,7 +63,7 @@ class Exercise(Base):
     __tablename__ = 'exercise'
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     created_date: Mapped[datetime] = mapped_column(default=datetime.now())
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True)
     category_id: Mapped[ExerciseCategory] = mapped_column(Enum(ExerciseCategory))
     side: Mapped[str]
     default_time: Mapped[int]

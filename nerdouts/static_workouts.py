@@ -1,110 +1,93 @@
-from functools import partial
 from typing import List
-from generate_static_workout import get_exercise_by_name, load_exercises_from_json, load_exercises_from_db
 from models import Exercise
-# get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_json())
-get_by_name = partial(get_exercise_by_name, exercises=load_exercises_from_db())
-from exercise_vars import *
+from exercise_vars import Exercises2
 
-workouts: dict[str, List[Exercise]] = {
-    'sample': [
-        get_by_name("Clamshells"),
-        get_by_name("High Kicks"),
-        get_by_name("Curls"),
-        get_by_name("Calf Stretch"),
-        get_by_name("Jump rope"),
-        get_by_name("Narrow Pushups")
-    ],
-    'pt_cool_down_day': [
-        get_by_name("Hip mobilization"),
-        get_by_name('Half Kneeling Hip Flexor Stretch'),
-        get_by_name('Quadraped rockback')
-    ],
-    'tmp': [
-        get_by_name("Downward dog"),
-        get_by_name("Hip mobilization"),
-        get_by_name("Arm Swings"),
-        get_by_name("Calf Lifts"),
-        get_by_name('Half Kneeling Hip Flexor Stretch'),
-        get_by_name("Dips"),
-        get_by_name('Calf Stretch'),
-        get_by_name('Quadraped rockback')
-    ],
-
-    'day_1': [
-            SHADOW_BOXING,
-            CURLS,
-            HIP_ROCKBACK,
-            HAMSTRING_EXTENDER,
-            SITUPS,
-            CURLS,
-            DIPS,
-            ARM_SWINGS,
-            CALF_LIFTS,
-            STRAIGHT_PLANK,
-            DUMBBELL_ROWS,
-            DUMBBELL_BENCH_PRESS,
-            HIP_MOBILIZATION,
-            JUMPING_JACKS,
-            DUMBBELL_ROWS,
-            DUMBBELL_BENCH_PRESS,
-            # # get_by_name("Half Kneeling Hip Flexor Stretch"),
-            # # get_by_name("Wall clamshell"),
-            # # get_by_name("Copenhagen"),
-            # # get_by_name("Plank with leg lift"),
-            # get_by_name("Calf Lifts"),
-            # # get_by_name("Split squat"),
-            # # get_by_name("Dumbbell bench press"),
-            # get_by_name("Situps"),
-            # # get_by_name("Lateral lunge"),
-            # # get_by_name("Squats"),
-            # get_by_name("Shadow boxing"),
-            # get_by_name("Downward dog"),
-            # # get_by_name("Downward dog"),
-            # # get_by_name("Jump rope")
-    ],
-    'day_2': [
-        DOWNWARD_DOG,
-        ARM_SWINGS,
-        ONE_FOOT_BRIDGE,
-        BRIDGE_HAMSTRING_CURL,
-        COPENHAGEN,
-        POGO,
-    ],
-    'nighttime': [
-        get_by_name("Jumping jacks"),
-        get_by_name("Dips"),
-        get_by_name("Calf Lifts"),
-        get_by_name("Curls"),
-        get_by_name("Dumbbell bench press"),
-        get_by_name("Downward dog"),
-        get_by_name("Dips"),
-        get_by_name("Curls"),
-        get_by_name("Dumbbell bench press"),
-    ],
-    'post_work': [
-        DOWNWARD_DOG,
-        NINJA_STRETCH,
-        HIP_MOBILITY,
-        DOWNWARD_DOG,
-        ROLLER_ON_THE_BACK,
-        ROLLER_ON_THE_IT_BAND,
-        DOWNWARD_DOG
-    ],
-    'no_cardio_pt': [
-        get_by_name("Kickstand Hip Hinge"),
-        get_by_name("Downward dog"),
-        get_by_name("Hip mobilization"),
-        get_by_name("Calf Lifts"),
-        get_by_name("Copenhagen"),
-        get_by_name("Plank with leg lift"),
-        get_by_name("Downward dog"),
-        get_by_name("Half Kneeling Hip Weightshift"),
-        get_by_name("Curls"),
-        get_by_name("Dumbbell bench press"),
-        get_by_name("Situps"),
-        get_by_name("Lateral lunge"),
-        get_by_name("Squats"),
-        get_by_name("Downward dog")
-    ]
-}
+def get_static_workouts() -> dict[str, List[Exercise]]:
+    exercises = Exercises2()
+    return {
+        'sample': [
+            exercises.CLAMSHELLS,
+            exercises.HIGH_KICKS,
+            exercises.CURLS,
+            exercises.CALF_STRETCH,
+            exercises.JUMP_ROPE,
+            exercises.NARROW_PUSHUPS
+        ],
+        'pt_cool_down_day': [
+            exercises.HIP_MOBILIZATION,
+            exercises.HALF_KNEELING_HIP_FLEXOR_STRETCH,
+            exercises.QUADRAPED_ROCKBACK
+        ],
+        'tmp': [
+            exercises.DOWNWARD_DOG,
+            exercises.HIP_MOBILIZATION,
+            exercises.ARM_SWINGS,
+            exercises.CALF_LIFTS,
+            exercises.HALF_KNEELING_HIP_FLEXOR_STRETCH,
+            exercises.DIPS,
+            exercises.CALF_STRETCH,
+            exercises.QUADRAPED_ROCKBACK
+        ],
+        'day_1': [
+            exercises.SHADOW_BOXING,
+            exercises.CURLS,
+            exercises.HIP_ROCKBACK,
+            exercises.HAMSTRING_EXTENDER,
+            exercises.SITUPS,
+            exercises.CURLS,
+            exercises.DIPS,
+            exercises.ARM_SWINGS,
+            exercises.CALF_LIFTS,
+            exercises.STRAIGHT_PLANK,
+            exercises.DUMBBELL_ROWS,
+            exercises.DUMBBELL_BENCH_PRESS,
+            exercises.HIP_MOBILIZATION,
+            exercises.JUMPING_JACKS,
+            exercises.DUMBBELL_ROWS,
+            exercises.DUMBBELL_BENCH_PRESS,
+        ],
+        'day_2': [
+            exercises.DOWNWARD_DOG,
+            exercises.ARM_SWINGS,
+            exercises.ONE_FOOT_BRIDGE,
+            exercises.BRIDGE_HAMSTRING_CURL,
+            exercises.COPENHAGEN,
+            exercises.POGO,
+        ],
+        'nighttime': [
+            exercises.JUMPING_JACKS,
+            exercises.DIPS,
+            exercises.CALF_LIFTS,
+            exercises.CURLS,
+            exercises.DUMBBELL_BENCH_PRESS,
+            exercises.DOWNWARD_DOG,
+            exercises.DIPS,
+            exercises.CURLS,
+            exercises.DUMBBELL_BENCH_PRESS,
+        ],
+        'post_work': [
+            exercises.DOWNWARD_DOG,
+            exercises.NINJA_STRETCH,
+            exercises.HIP_MOBILITY,
+            exercises.DOWNWARD_DOG,
+            exercises.ROLLER_ON_THE_BACK,
+            exercises.ROLLER_ON_THE_IT_BAND,
+            exercises.DOWNWARD_DOG
+        ],
+        'no_cardio_pt': [
+            exercises.KICKSTAND_HIP_HINGE,
+            exercises.DOWNWARD_DOG,
+            exercises.HIP_MOBILIZATION,
+            exercises.CALF_LIFTS,
+            exercises.COPENHAGEN,
+            exercises.PLANK_WITH_LEG_LIFT,
+            exercises.DOWNWARD_DOG,
+            exercises.HALF_KNEELING_HIP_WEIGHTSHIFT,
+            exercises.CURLS,
+            exercises.DUMBBELL_BENCH_PRESS,
+            exercises.SITUPS,
+            exercises.LATERAL_LUNGE,
+            exercises.SQUATS,
+            exercises.DOWNWARD_DOG
+        ]
+    }
