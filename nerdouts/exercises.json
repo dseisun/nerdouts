@@ -828,5 +828,15 @@
     "repetition": 2,
     "prompt": "{name}. 2 reps of 30 seconds",
     "long_desc": "Bunny hop around for 30 seconds"
+  },
+  {
+    "date_added": "2024-11-02",
+    "name": "Single leg bridge with extended leg",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}. 2 reps of 30 seconds. {side} side",
+    "long_desc": "Do a bridge but with the legs half extended. At the peak lift one leg off the ground"
   }
 ]

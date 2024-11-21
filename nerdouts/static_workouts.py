@@ -54,6 +54,17 @@ def get_static_workouts() -> dict[str, List[Exercise]]:
             exercises.COPENHAGEN,
             exercises.POGO,
         ],
+        'pre_bike': [
+            exercises.SHADOW_BOXING,
+            exercises.DOWNWARD_DOG,
+            exercises.ARM_SWINGS,
+            exercises.CURLS,
+            exercises.DOWNWARD_DOG,
+            exercises.BRIDGE_HAMSTRING_CURL,
+            exercises.POGO,
+            exercises.SINGLE_LEG_BRIDGE,
+            exercises.HIP_ROCKBACK,
+        ],
         'nighttime': [
             exercises.JUMPING_JACKS,
             exercises.DIPS,

@@ -1,6 +1,6 @@
 from database import set_engine_for_ctx
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import IntegrityError
 from models import Base, Exercise
 from sqlalchemy import MetaData
 import json
@@ -10,19 +10,24 @@ from config import get_current_context, app_context
 def load_exercises(exercise_path, debug):
     ctx = get_current_context()
     exercises = json.load(open(exercise_path))
-    exercise_rows = []
-    for e in exercises:
-        exercise_rows.append(
-            Exercise(name=e['name']
-                ,category_id=e['category_id']
-                ,side=e['side']
-                ,default_time=e['default_time']
-                ,repetition=e['repetition']
-                ,prompt=e['prompt']
-                ,long_desc=e['long_desc']))
     with Session(ctx.engine) as session:
-        session.add_all(exercise_rows)  # Changed from exercises to exercise_rows
-        session.commit()
+        for e in exercises:
+            exercise = Exercise(
+                name=e['name'],
+                category_id=e['category_id'],
+                side=e['side'],
+                default_time=e['default_time'],
+                repetition=e['repetition'],
+                prompt=e['prompt'],
+                long_desc=e['long_desc']
+            )
+            try:
+                session.merge(exercise)
+                session.commit()
+            except IntegrityError:
+                # If exercise already exists, rollback and continue with next one
+                session.rollback()
+                continue
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='Prepare a database for storing workouts')
