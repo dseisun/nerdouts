@@ -1,117 +1,129 @@
 #!/usr/bin/env python
 
-# TODO Add git hook to generate static workouts on each commit
-# TODO Support workout "Groups" - e.g. 3 sets of 3 different things where you do 1 set of each at a time
-# TODO Add logging for total workout time to the end (somehow lost it)
-# TODO Decide whether your source of exercises is in the database or json file
-    # Does each workout have the ability to define a source? E.g. one could be from the db, one from a file?
-# TODO Write tests
-# TODO Actually have static exercises write to a db
-# TODO Support sqlite or other db types
-# TODO show overall workout time to start
-# TODO Decide to either use curses or website for display - Website - Ncurses would be crazy
-# TODO Add pydantic for validation?
 import argparse
-from typing import List, Union
-from config import Config, app_context, get_current_context
-from models import Exercise, Workout, WorkoutExercise
-import utils
-from datetime import datetime
-import time
-from sqlalchemy.orm import Session
 import logging
-from generate_dynamic_workout import generate_dynamic_workout, generate_workout_exercises
+import time
+from datetime import datetime
+from typing import List, Optional, Protocol, Callable
+
+from sqlalchemy.orm import Session
+
+from config import Config, app_context, get_current_context
+from generate_dynamic_workout import generate_dynamic_workout
+from models import Exercise, Workout, WorkoutExercise
+from music import MusicPlayer, SpotifyPlayer
 from speech import countdown, get_speech_engine
 from static_workouts import get_static_workouts
-import music
+import utils
 
-DEFAULT_MUSIC_PLAYER = music.SpotifyPlayer()
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# TODO Support "pause" exercises. Exercises with a default time, but that 
-# don't countdown and instead rely on user input to move forward 
-# E.g. Jump rope or ladder exercise
-def run_exercise(exercise, tts, player):
-    ctx = get_current_context()
-    if not ctx.debug:
-        for i in range(exercise.repetition):
+class WorkoutRunner:
+    def __init__(
+        self,
+        music_player: Optional[MusicPlayer] = None,
+        speech_engine: Optional[Callable[..., None]] = None
+    ):
+        self.music_player = music_player or SpotifyPlayer()
+        self.speech_engine = speech_engine or get_speech_engine()
+
+    def run_exercise(self, exercise: Exercise) -> bool:
+        """Run a single exercise.
+        
+        Returns:
+            bool: True if exercise was skipped, False otherwise
+        """
+        ctx = get_current_context()
+        if ctx.debug:
+            logger.info("QA MODE: Running exercise: %s", exercise.name)
+            time.sleep(0.5)
+            return False
+
+        for _ in range(exercise.repetition):
             for side in exercise.sides:
-                player.pause()
-                tts(exercise.sentence(side=side))
-                player.play()
-                if countdown(exercise.default_time):  # Check if exercise was skipped
-                    logging.info("Exercise skipped by user")
-                    return True  # Return True to indicate skip
-    else:
-        logging.info("QA MODE: Running exercise: %s" % exercise.name)
-        time.sleep(.5)
-    return False  # Return False to indicate normal completion
+                self.music_player.pause()
+                self.speech_engine(exercise.sentence(side=side))
+                self.music_player.play()
+                
+                if countdown(exercise.default_time):
+                    logger.info("Exercise skipped by user")
+                    return True
+        return False
 
-def run_exercises(exercises: list[Exercise]):
-    tts = get_speech_engine()
-    tts('Workout should take: %s minutes' % int(utils.get_workout_length(exercises) / 60))
-    for exc in exercises:
-        skipped = run_exercise(exc, tts, DEFAULT_MUSIC_PLAYER)
-        if skipped:
-            logging.info(f"Skipped exercise: {exc.name}")
-    tts('Workout finished. You''re going to be so jacked')
+    def run_exercises(self, exercises: List[Exercise]) -> None:
+        """Run a sequence of exercises."""
+        workout_length = int(utils.get_workout_length(exercises) / 60)
+        self.speech_engine(f'Workout should take: {workout_length} minutes')
 
+        for exercise in exercises:
+            skipped = self.run_exercise(exercise)
+            if skipped:
+                logger.info("Skipped exercise: %s", exercise.name)
 
-# TODO: Fix to have a proper config interface
-def run_dynamic_workout(args: argparse.Namespace):
-    # Import exercises after app_context is established
-    from exercise_vars import exercises
-    wo = generate_dynamic_workout(config=Config(
-        total_time=args.time,
-        whitelist=[exercises.HIP_LIFT],
-        blacklist=[exercises.CURLS]
-    ))
-    run_exercises([wo_exc.exercise for wo_exc in wo.workout_exercises])
-    
-    with Session(get_current_context().engine) as session:
-        session.add(wo)
-        session.commit()
+        self.speech_engine('Workout finished. You\'re going to be so jacked')
 
-def run_static_workout(args: argparse.Namespace):
-    with Session(get_current_context().engine) as session:
+class WorkoutService:
+    def __init__(self, session: Session, runner: WorkoutRunner):
+        self.session = session
+        self.runner = runner
+
+    def run_dynamic_workout(self, total_time: int) -> None:
+        """Run a dynamically generated workout."""
+        from exercise_vars import exercises
+        config = Config(
+            total_time=total_time,
+            whitelist=[exercises.HIP_LIFT],
+            blacklist=[exercises.CURLS]
+        )
+        workout = generate_dynamic_workout(config=config)
+        self.runner.run_exercises([we.exercise for we in workout.workout_exercises])
+        
+        self.session.add(workout)
+        self.session.commit()
+
+    def run_static_workout(self, workout_name: str) -> None:
+        """Run a predefined static workout."""
         workouts = get_static_workouts()
-        exercises = workouts[args.workout]
-        session.add_all(exercises)
-        wo = Workout()
+        exercises = workouts[workout_name]
+        self.session.add_all(exercises)
+
+        workout = Workout()
         workout_exercises = [
             WorkoutExercise(
-                workout=wo, 
+                workout=workout,
                 exercise=exc,
-                created_date = datetime.now(),
-                # TODO: Fix if we ever want to do dynamic time per set
-                time_per_set = exc.default_time, 
-                repetition = exc.repetition)
-            for exc in exercises]
-        # Explicitly set the workout_exercises relationship
-        wo.workout_exercises = workout_exercises
-        session.add_all(workout_exercises)
-        run_exercises(exercises)
-        session.add(wo)
-        session.commit()
+                created_date=datetime.now(),
+                time_per_set=exc.default_time,
+                repetition=exc.repetition
+            )
+            for exc in exercises
+        ]
+        workout.workout_exercises = workout_exercises
+        
+        self.session.add_all(workout_exercises)
+        self.runner.run_exercises(exercises)
+        self.session.add(workout)
+        self.session.commit()
 
-def parse_args():
-    parser = argparse.ArgumentParser(prog='Workout with static workouts')
-    parser.add_argument('-d', dest='debug', action='store_true', help='Run in debug mode.')
-    subparsers = parser.add_subparsers(help='this is a test', required=True, dest='cmd')
+from cli import parse_args
 
-    dynamic = subparsers.add_parser('dynamic', help='Generate a dynamic workout')
-    dynamic.add_argument('-t', dest='time', type=int, help='Length (of time) of workout in minutes', required=True)
-    dynamic.set_defaults(func=run_dynamic_workout)
-
-    static = subparsers.add_parser('static', help='Run a predetermined workout. No config needed')
-    static.add_argument('-w', dest='workout', type=str, help="The name of the workout as defined in static_workouts.py", required=True)
-    static.set_defaults(func=run_static_workout)
-
-    # genstat = subparsers.add_parser('genstat', help='Generate a static workout from a set of exercises')
-    # genstat.add_argument('-e', dest='exercise_file', type=str, help="The path of the json file containing the master list of workouts", required=True)
-    # genstat.set_defaults(func=run_genstat)
-    return parser.parse_args()
+def main() -> None:
+    args = parse_args()
+    
+    with app_context(debug=args.debug):
+        runner = WorkoutRunner()
+        
+        with Session(get_current_context().engine) as session:
+            service = WorkoutService(session, runner)
+            
+            if args.cmd == 'dynamic':
+                service.run_dynamic_workout(args.time)
+            elif args.cmd == 'static':
+                service.run_static_workout(args.workout)
 
 if __name__ == '__main__':
-    args = parse_args()
-    with app_context(debug=args.debug):
-        args.func(args)
+    main()
