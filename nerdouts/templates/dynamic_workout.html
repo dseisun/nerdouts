@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Dynamic Workout{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="text-center mb-4">Configure Your Workout</h1>
+        
+        <form action="/workout/dynamic/start" method="post">
+            <div class="mb-3">
+                <label for="time" class="form-label">Workout Duration (minutes)</label>
+                <input type="number" 
+                       name="time" 
+                       id="time" 
+                       class="form-control form-control-lg" 
+                       required 
+                       min="5" 
+                       max="120" 
+                       step="5"
+                       value="30">
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success btn-lg">Start Workout</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

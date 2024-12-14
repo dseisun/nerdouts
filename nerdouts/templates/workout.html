@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Workout in Progress{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Workout List Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Workout Plan</h4>
+            </div>
+            <div class="card-body">
+                <div class="list-group" id="workout-list">
+                    {% for exercise in workout %}
+                    <div class="list-group-item" data-exercise-index="{{ loop.index0 }}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ exercise.name }}</h5>
+                            <small>
+                                {{ (exercise.default_time / 60)|int }}:{{ '%02d' % (exercise.default_time % 60) }}
+                                {% if exercise.repetition > 1 %}
+                                x{{ exercise.repetition }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if exercise.prompt %}
+                        <p class="mb-1 text-muted">{{ exercise.prompt.format(name=exercise.name, side="") }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workout Display -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 id="current-exercise">Ready to begin!</h2>
+                <p class="text-muted" id="exercise-prompt"></p>
+                <div class="h4 mb-3" id="repetition-counter"></div>
+                <div class="display-1 my-4" id="timer">00:00</div>
+                <div class="progress mb-4">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         id="progress"
+                         style="width: 0%"></div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary btn-lg" id="next">Start</button>
+                    <button class="btn btn-outline-secondary btn-lg" id="skip">Skip Exercise</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Connection Status -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="connection-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Connection Status</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="connection-status">
+            Connecting to server...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const workout = {{ workout|tojson }};
+let currentExerciseIndex = -1;  // Start at -1 to show "Ready to begin"
+let currentRepetition = 0;
+let currentSideIndex = 0;
+let timer = null;
+let timeLeft = 0;
+let ws = null;
+let isConnected = false;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+
+// Initialize toast
+const toast = new bootstrap.Toast(document.getElementById('connection-toast'));
+const connectionStatus = document.getElementById('connection-status');
+
+function showConnectionStatus(message, autohide = true) {
+    connectionStatus.textContent = message;
+    const toastEl = document.getElementById('connection-toast');
+    const toast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, {
+        autohide: autohide
+    });
+    toast.show();
+}
+
+function connectWebSocket() {
+    if (ws) {
+        ws.close();
+    }
+
+    ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+    ws.onopen = () => {
+        isConnected = true;
+        reconnectAttempts = 0;
+        showConnectionStatus('Connected to server', true);
+    };
+
+    ws.onclose = () => {
+        isConnected = false;
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            showConnectionStatus(`Connection lost. Reconnecting (${reconnectAttempts}/${maxReconnectAttempts})...`, false);
+            setTimeout(connectWebSocket, 1000 * reconnectAttempts);
+        } else {
+            showConnectionStatus('Connection lost. Please refresh the page.', false);
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        showConnectionStatus('Connection error', false);
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.status === 'exercise_started') {
+            // Continue with exercise after backend confirms start
+            startExerciseTimer(workout[currentExerciseIndex]);
+        }
+    };
+}
+
+function updateTimer(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    document.getElementById('timer').textContent = 
+        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function updateProgress(current, total) {
+    const percent = (current / total) * 100;
+    const progress = document.getElementById('progress');
+    progress.style.width = `${percent}%`;
+}
+
+function updateWorkoutList() {
+    document.querySelectorAll('.list-group-item').forEach((item, index) => {
+        item.classList.remove('active', 'bg-primary', 'text-white', 'text-muted');
+        if (index < currentExerciseIndex) {
+            item.classList.add('text-muted');  // Completed exercises
+        } else if (index === currentExerciseIndex) {
+            item.classList.add('active', 'bg-primary', 'text-white');  // Current exercise
+        }
+    });
+}
+
+function updateRepetitionCounter(exercise) {
+    const repetitionCounter = document.getElementById('repetition-counter');
+    if (exercise.repetition > 1) {
+        let text = `Set ${currentRepetition + 1} of ${exercise.repetition}`;
+        // Only show side if it's "Both"
+        if (exercise.side === 'Both' && exercise.sides.length > 1) {
+            text += ` (${exercise.sides[currentSideIndex]})`;
+        }
+        repetitionCounter.textContent = text;
+    } else if (exercise.side === 'Both' && exercise.sides.length > 1) {
+        repetitionCounter.textContent = exercise.sides[currentSideIndex];
+    } else {
+        repetitionCounter.textContent = '';
+    }
+}
+
+function startExerciseTimer(exercise) {
+    timeLeft = exercise.default_time;
+    updateTimer(timeLeft);
+    
+    if (timer) {
+        clearInterval(timer);
+    }
+    
+    timer = setInterval(() => {
+        timeLeft--;
+        updateTimer(timeLeft);
+        updateProgress(exercise.default_time - timeLeft, exercise.default_time);
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            continueExercise();
+        }
+    }, 1000);
+}
+
+function startExercise(exercise) {
+    if (!isConnected) {
+        showConnectionStatus('Not connected to server. Please refresh the page.', false);
+        return;
+    }
+
+    document.getElementById('current-exercise').textContent = exercise.name;
+    // Use string interpolation for the prompt with empty side if not needed
+    const promptEl = document.getElementById('exercise-prompt');
+    const side = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : '';
+    promptEl.textContent = exercise.prompt ? exercise.prompt.format(name=exercise.name, side=side) : '';
+    updateWorkoutList();
+    updateRepetitionCounter(exercise);
+
+    // Only include side in the backend notification if it's "Both"
+    const sideForBackend = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : null;
+    
+    // Notify backend to start exercise (speech/music)
+    ws.send(JSON.stringify({
+        command: 'start_exercise',
+        exercise: {
+            ...exercise,
+            side: sideForBackend
+        }
+    }));
+}
+
+function continueExercise() {
+    const exercise = workout[currentExerciseIndex];
+    
+    // Check if we need to switch sides (only if side is "Both")
+    if (exercise.side === 'Both' && exercise.sides && currentSideIndex < exercise.sides.length - 1) {
+        currentSideIndex++;
+        startExercise(exercise);
+        return;
+    }
+    
+    // Reset sides counter and check repetitions
+    currentSideIndex = 0;
+    currentRepetition++;
+    
+    if (currentRepetition < exercise.repetition) {
+        startExercise(exercise);
+    } else {
+        // Move to next exercise
+        currentRepetition = 0;
+        nextExercise();
+    }
+}
+
+function nextExercise() {
+    if (timer) {
+        clearInterval(timer);
+    }
+    
+    if (currentExerciseIndex >= 0) {
+        // Notify backend of completed exercise
+        ws.send(JSON.stringify({
+            command: 'complete_exercise',
+            exerciseIndex: currentExerciseIndex
+        }));
+    }
+    
+    currentExerciseIndex++;
+    currentRepetition = 0;
+    currentSideIndex = 0;
+    
+    if (currentExerciseIndex >= workout.length) {
+        document.getElementById('current-exercise').textContent = 'Workout Complete!';
+        document.getElementById('exercise-prompt').textContent = '';
+        document.getElementById('repetition-counter').textContent = '';
+        document.getElementById('timer').textContent = '00:00';
+        document.getElementById('next').style.display = 'none';
+        document.getElementById('skip').style.display = 'none';
+        document.getElementById('progress').style.width = '100%';
+        updateWorkoutList();
+        
+        // Notify backend of workout completion
+        ws.send(JSON.stringify({
+            command: 'finish_workout'
+        }));
+        return;
+    }
+    
+    const exercise = workout[currentExerciseIndex];
+    startExercise(exercise);
+}
+
+// Initialize WebSocket connection
+connectWebSocket();
+
+// Initialize workout list
+updateWorkoutList();
+
+document.getElementById('next').addEventListener('click', nextExercise);
+document.getElementById('skip').addEventListener('click', () => {
+    if (timer) {
+        clearInterval(timer);
+    }
+    nextExercise();
+});
+</script>
+{% endblock %}
