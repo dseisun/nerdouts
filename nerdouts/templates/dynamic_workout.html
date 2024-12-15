@@ -7,7 +7,13 @@
     <div class="col-md-6">
         <h1 class="text-center mb-4">Configure Your Workout</h1>
         
-        <form action="/workout/dynamic/start" method="post">
+        <!-- Total percentage display -->
+        <div class="alert alert-info text-center mb-4">
+            <h4 class="mb-0">Total: <span id="totalPercentage">100</span>%</h4>
+            <small class="text-muted">Must equal 100%</small>
+        </div>
+
+        <form action="/workout/dynamic/start" method="post" id="workoutForm">
             <div class="mb-3">
                 <label for="time" class="form-label">Workout Duration (minutes)</label>
                 <input type="number" 
@@ -20,6 +26,72 @@
                        step="5"
                        value="30">
             </div>
+
+            <h3 class="mt-4 mb-3">Category Weights</h3>
+            
+            <div class="mb-3">
+                <label for="weight_physical_therapy" class="form-label">Physical Therapy</label>
+                <div class="input-group">
+                    <input type="number" 
+                           name="weight_physical_therapy" 
+                           id="weight_physical_therapy" 
+                           class="form-control weight-input" 
+                           required 
+                           min="0" 
+                           max="1" 
+                           step="0.05"
+                           value="0.20">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="weight_stretch" class="form-label">Stretch</label>
+                <div class="input-group">
+                    <input type="number" 
+                           name="weight_stretch" 
+                           id="weight_stretch" 
+                           class="form-control weight-input" 
+                           required 
+                           min="0" 
+                           max="1" 
+                           step="0.05"
+                           value="0.25">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="weight_strength" class="form-label">Strength</label>
+                <div class="input-group">
+                    <input type="number" 
+                           name="weight_strength" 
+                           id="weight_strength" 
+                           class="form-control weight-input" 
+                           required 
+                           min="0" 
+                           max="1" 
+                           step="0.05"
+                           value="0.35">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="weight_rolling" class="form-label">Rolling</label>
+                <div class="input-group">
+                    <input type="number" 
+                           name="weight_rolling" 
+                           id="weight_rolling" 
+                           class="form-control weight-input" 
+                           required 
+                           min="0" 
+                           max="1" 
+                           step="0.05"
+                           value="0.20">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
             
             <div class="d-grid">
                 <button type="submit" class="btn btn-success btn-lg">Start Workout</button>
@@ -27,4 +99,46 @@
         </form>
     </div>
 </div>
+
+<script>
+// Update total percentage whenever weights change
+function updateTotal() {
+    const weights = Array.from(document.querySelectorAll('.weight-input'))
+        .map(input => parseFloat(input.value) || 0);
+    
+    const sum = weights.reduce((a, b) => a + b, 0);
+    const totalElement = document.getElementById('totalPercentage');
+    
+    // Update total display
+    totalElement.textContent = (sum * 100).toFixed(0);
+    
+    // Update alert color based on total
+    const alertElement = totalElement.closest('.alert');
+    if (Math.abs(sum - 1.0) <= 0.001) {
+        alertElement.className = 'alert alert-success text-center mb-4';
+    } else {
+        alertElement.className = 'alert alert-warning text-center mb-4';
+    }
+}
+
+// Add event listeners to all weight inputs
+document.querySelectorAll('.weight-input').forEach(input => {
+    input.addEventListener('input', updateTotal);
+});
+
+// Validate form on submit
+document.getElementById('workoutForm').addEventListener('submit', function(e) {
+    const weights = Array.from(document.querySelectorAll('.weight-input'))
+        .map(input => parseFloat(input.value) || 0);
+    
+    const sum = weights.reduce((a, b) => a + b, 0);
+    if (Math.abs(sum - 1.0) > 0.001) {
+        e.preventDefault();
+        alert('Category weights must sum to 100% (current sum: ' + (sum * 100).toFixed(0) + '%)');
+    }
+});
+
+// Initialize total on page load
+updateTotal();
+</script>
 {% endblock %}

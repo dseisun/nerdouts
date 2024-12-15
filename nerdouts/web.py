@@ -11,11 +11,18 @@ import json
 from typing import Optional, Dict
 
 from static_workouts import get_static_workouts
-from config import app_context, get_current_context
+from config import app_context, get_current_context, Config
 from sqlalchemy.orm import Session
 from workout_runner import WorkoutService, WorkoutRunner
 from speech import _stop_input, get_speech_engine
 from music import SpotifyPlayer
+from models import ExerciseCategory
+
+#TODO When display falls asleep, timer seems to stop
+#TODO 10 second countdown no longer works
+#TODO Add ability to pause
+#TODO Add ability to generate static workouts - migrate static workouts to db
+#TODO Add ability to add required/excluded exercises
 
 app = FastAPI()
 
@@ -165,30 +172,44 @@ async def dynamic_workout_form(request: Request):
 @app.post("/workout/dynamic/start", response_class=HTMLResponse)
 async def start_dynamic_workout(
     request: Request,
-    time: int = Form(...)
+    time: int = Form(...),
+    weight_physical_therapy: float = Form(...),
+    weight_stretch: float = Form(...),
+    weight_strength: float = Form(...),
+    weight_rolling: float = Form(...)
 ):
     """Start a dynamic workout session."""
+    # Create custom category weights
+    categories = {
+        ExerciseCategory.physical_therapy: weight_physical_therapy,
+        ExerciseCategory.stretch: weight_stretch,
+        ExerciseCategory.strength: weight_strength,
+        ExerciseCategory.rolling: weight_rolling
+    }
+
+    workout_data = []
     with app_context(debug=False):
         with Session(get_current_context().engine) as session:
             service = WorkoutService(session)
-            # Get workout exercises without running them
-            workout = service.run_dynamic_workout(time)
-            
-    return templates.TemplateResponse(
-        "workout.html",
-        {
-            "request": request,
-            "workout": [
-                {
+            # Create Config with custom category weights
+            config = Config(total_time=time, categories=categories)
+            # Get workout exercises and extract data while session is active
+            workout = service.run_dynamic_workout(time, config=config)
+            for e in workout:
+                workout_data.append({
                     "name": e.name,
                     "default_time": e.default_time,
                     "repetition": e.repetition,
                     "sides": e.sides,
                     "prompt": e.prompt,
                     "side": e.side
-                }
-                for e in workout
-            ]
+                })
+            
+    return templates.TemplateResponse(
+        "workout.html",
+        {
+            "request": request,
+            "workout": workout_data
         }
     )
 
