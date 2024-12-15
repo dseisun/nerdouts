@@ -204,7 +204,8 @@ function startExercise(exercise) {
     // Use string interpolation for the prompt with empty side if not needed
     const promptEl = document.getElementById('exercise-prompt');
     const side = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : '';
-    promptEl.textContent = exercise.prompt ? exercise.prompt.format(name=exercise.name, side=side) : '';
+    promptEl.textContent = exercise.prompt ? 
+    exercise.prompt.replace('{name}', exercise.name).replace('{side}', side) : '';
     updateWorkoutList();
     updateRepetitionCounter(exercise);
 
@@ -260,6 +261,12 @@ function nextExercise() {
     currentExerciseIndex++;
     currentRepetition = 0;
     currentSideIndex = 0;
+
+    // Disable the start button after first click
+    const nextButton = document.getElementById('next');
+    nextButton.disabled = true;
+    nextButton.classList.add('btn-secondary');
+    nextButton.classList.remove('btn-primary');
     
     if (currentExerciseIndex >= workout.length) {
         document.getElementById('current-exercise').textContent = 'Workout Complete!';

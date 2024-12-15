@@ -7,7 +7,7 @@
     <div class="col-md-6">
         <h1 class="text-center mb-4">Choose a Workout</h1>
         
-        <form action="/workout/static/start" method="post">
+        <form id="workoutForm" action="/workout/static/start" method="post">
             <div class="mb-3">
                 <label for="workout" class="form-label">Select Workout</label>
                 <select name="workout_name" id="workout" class="form-select form-select-lg" required>
@@ -24,4 +24,103 @@
         </form>
     </div>
 </div>
+
+<!-- Debug Info Panel -->
+<div id="debugPanel" class="mt-4 p-3 bg-light">
+    <h4>Debug Information</h4>
+    <pre id="debugOutput" style="max-height: 200px; overflow-y: auto;"></pre>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Debug utility
+const debugLog = (message, type = 'info') => {
+    const timestamp = new Date().toISOString();
+    const formattedMessage = `[${timestamp}] [${type}] ${message}`;
+    console.log(formattedMessage);
+    
+    // Also display in debug panel
+    const debugOutput = document.getElementById('debugOutput');
+    const logEntry = document.createElement('div');
+    logEntry.textContent = formattedMessage;
+    logEntry.className = `text-${type === 'error' ? 'danger' : 'dark'}`;
+    debugOutput.appendChild(logEntry);
+    debugOutput.scrollTop = debugOutput.scrollHeight;
+};
+
+// Log available workouts
+debugLog('Available workouts:', 'info');
+const workoutSelect = document.getElementById('workout');
+Array.from(workoutSelect.options).forEach(option => {
+    if (option.value) {
+        debugLog(`- ${option.value}`);
+    }
+});
+
+// Monitor workout selection changes
+workoutSelect.addEventListener('change', (event) => {
+    debugLog(`Workout selected: ${event.target.value}`);
+});
+
+// Monitor form submission
+const form = document.getElementById('workoutForm');
+form.addEventListener('submit', (event) => {
+    const formData = new FormData(form);
+    debugLog(`Form submitted with workout: ${formData.get('workout_name')}`);
+    
+    // Log the full form data
+    debugLog('Form data:');
+    for (let [key, value] of formData.entries()) {
+        debugLog(`${key}: ${value}`);
+    }
+});
+
+// Network request monitoring
+const originalFetch = window.fetch;
+window.fetch = async (...args) => {
+    debugLog(`Fetch request to: ${args[0]}`);
+    try {
+        const response = await originalFetch(...args);
+        debugLog(`Fetch response status: ${response.status}`);
+        return response;
+    } catch (error) {
+        debugLog(`Fetch error: ${error.message}`, 'error');
+        throw error;
+    }
+};
+
+// Log page load time
+window.addEventListener('load', () => {
+    const pageLoadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+    debugLog(`Page loaded in ${pageLoadTime}ms`);
+});
+
+// Development Tools Guide
+console.log(`
+Debugging Tips:
+1. Browser DevTools (F12 or Cmd+Option+I):
+   - Elements tab: Inspect HTML structure
+   - Console tab: View these debug logs
+   - Network tab: Monitor HTTP requests
+   - Sources tab: Set breakpoints in JavaScript code
+
+2. Network Monitoring:
+   - All fetch requests are being logged
+   - Check Network tab for detailed request/response info
+
+3. Form Debugging:
+   - Watch the debug panel for form interactions
+   - Form submissions are being logged
+   - Workout selections are being tracked
+
+4. Python Backend Debugging:
+   - Use FastAPI debug mode: uvicorn web:app --reload --log-level debug
+   - Check terminal for backend logs
+   - Set breakpoints in web.py using:
+     import pdb; pdb.set_trace()
+`);
+
+debugLog('Debug initialization complete');
+</script>
 {% endblock %}

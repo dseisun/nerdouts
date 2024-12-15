@@ -10,7 +10,7 @@ from models import Exercise, Workout, WorkoutExercise
 from music import MusicPlayer, SpotifyPlayer
 from speech import countdown, get_speech_engine
 from static_workouts import get_static_workouts
-from exercise_vars import Exercises2
+from exercise_vars import Exercises
 import utils
 
 logger = logging.getLogger(__name__)
@@ -63,24 +63,33 @@ class WorkoutService:
         self.session = session
         self.runner = runner
 
-    def run_dynamic_workout(self, total_time: int) -> List[Exercise]:
+    def run_dynamic_workout(self, total_time: int, config: Optional[Config] = None) -> List[Exercise]:
         """Run a dynamically generated workout.
+        
+        Args:
+            total_time: Total workout time in minutes
+            config: Optional Config object. If not provided, uses default configuration.
         
         Returns:
             List[Exercise]: The list of exercises in the workout
         """
-        exercises = Exercises2()
-        config = Config(
-            total_time=total_time,
-            whitelist=[exercises.HIP_LIFT],
-            blacklist=[exercises.CURLS]
-        )
-        workout = generate_dynamic_workout(config=config)
+        if config is None:
+            exercises = Exercises()
+            config = Config(
+                total_time=total_time,
+                whitelist=[exercises.HIP_LIFT],
+                blacklist=[exercises.CURLS]
+            )
+        else:
+            # Ensure total_time is set correctly in the provided config
+            config.total_time = total_time
+            
+        workout = generate_dynamic_workout(self.session, config=config)
         exercise_list = [we.exercise for we in workout.workout_exercises]
         
         if self.runner:
             self.runner.run_exercises(exercise_list)
-        
+        self.session.add_all(workout.workout_exercises)
         self.session.add(workout)
         self.session.commit()
         
