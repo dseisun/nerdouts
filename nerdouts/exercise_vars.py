@@ -2,7 +2,7 @@ from functools import partial
 from generate_static_workout import load_exercises_from_db
 from models import Exercise
 
-class Exercises2():
+class Exercises():
     def __init__(self) -> None:
         self.exercises = load_exercises_from_db()
         self.BUTT_KICKERS = self.get_by_name("Butt Kickers")

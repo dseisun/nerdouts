@@ -7,7 +7,7 @@ name = "nerdouts"
 version = "0.1.0"
 description = "A workout management system"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "Creative Commons Attribution-Noncommercial-Share Alike license"}
 authors = [
     {name = "Daniel Seisun"}
@@ -16,6 +16,11 @@ urls = {Homepage = "https://github.com/dseisun/nerdouts"}
 dependencies = [
     "pyyaml>=4.2b1",
     "SQLAlchemy",
+    "fastapi>=0.104.1",
+    "uvicorn>=0.24.0",
+    "jinja2>=3.1.2",
+    "python-multipart>=0.0.6",
+    "websockets>=13.1",
 ]
 
 [project.optional-dependencies]
@@ -27,7 +32,7 @@ mysql = [
 ]
 
 postgres = [
-    "psycopg2==2.9.10"
+    "psycopg2>=2.9.9"
 ]
 
 [tool.setuptools]

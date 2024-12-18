@@ -1,52 +1,34 @@
 import subprocess
+from typing import Protocol
 
-# TODO Fix broken dbus import
-# import dbus
+class MusicPlayer(Protocol):
+    """Protocol defining the interface for music players."""
+    
+    def play(self) -> None:
+        """Start or resume playback."""
+        ...
 
-from abc import ABC, abstractmethod
+    def pause(self) -> None:
+        """Pause playback."""
+        ...
 
-class Player(ABC):
-    @abstractmethod
-    def next(self):
-        pass
+    def next(self) -> None:
+        """Skip to next track."""
+        ...
 
-    @abstractmethod
-    def pause(self):
-        pass
+class SpotifyPlayer:
+    """AppleScript-based Spotify controller for macOS."""
 
-    @abstractmethod
-    def play(self):
-        pass
-
-
-class ClementinePlayer(Player):
-    def __init__(self):
-        self._player = dbus.SessionBus().get_object('org.mpris.MediaPlayer2.clementine', '/org/mpris/MediaPlayer2')
-        self._iface = dbus.Interface(self._player, dbus_interface='org.mpris.MediaPlayer2.Player')
-        subprocess.call('clementine -l /home/dseisun/.config/Clementine/Playlists/Workout.xspf', shell=True)
-
-    def next(self):
-        self._iface.Next()
-
-    def pause(self):
-        self._iface.Pause()
-
-    def play(self):
-        self._iface.Play()
-
-class SpotifyPlayer(Player):
-
-    @staticmethod
-    def run_applescript(script):
+    def run_applescript(self, script: str) -> None:
+        """Run an AppleScript command."""
         osa_command = ['osascript', '-e', script]
-        subprocess.run(osa_command)
+        subprocess.run(osa_command, check=True)
     
-    
-    def play(self):
-        SpotifyPlayer.run_applescript('tell application "Spotify" to play')
+    def play(self) -> None:
+        self.run_applescript('tell application "Spotify" to play')
 
-    def pause(self):
-        SpotifyPlayer.run_applescript('tell application "Spotify" to pause')
+    def pause(self) -> None:
+        self.run_applescript('tell application "Spotify" to pause')
 
-    def next(self):
-        SpotifyPlayer.run_applescript('tell application "Spotify" to next track')
+    def next(self) -> None:
+        self.run_applescript('tell application "Spotify" to next track')

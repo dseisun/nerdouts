@@ -1,9 +1,9 @@
 from typing import List
 from models import Exercise
-from exercise_vars import Exercises2
+from exercise_vars import Exercises
 
 def get_static_workouts() -> dict[str, List[Exercise]]:
-    exercises = Exercises2()
+    exercises = Exercises()
     return {
         'sample': [
             exercises.CLAMSHELLS,
