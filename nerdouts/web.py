@@ -23,6 +23,7 @@ from models import ExerciseCategory
 #TODO Add ability to pause
 #TODO Add ability to generate static workouts - migrate static workouts to db
 #TODO Add ability to add required/excluded exercises
+#TODO Write workout go database after (currently broken for dynamic and static)
 
 app = FastAPI()
 
@@ -62,7 +63,7 @@ async def websocket_endpoint(websocket: WebSocket):
     # Store connection
     connection_id = id(websocket)
     active_connections[connection_id] = websocket
-    
+    music_player = None
     try:
         # Initialize workout components
         speech_engine = get_speech_engine()
