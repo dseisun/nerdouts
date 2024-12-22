@@ -63,8 +63,8 @@ class WorkoutService:
         self.session = session
         self.runner = runner
 
-    def run_dynamic_workout(self, total_time: int, config: Optional[Config] = None) -> List[Exercise]:
-        """Run a dynamically generated workout.
+    def run_dynamic_workout(self, total_time: int, config: Optional[Config] = None) -> Workout:
+        """Run a dynamically generated workout. Returns the workout to be committed, 
         
         Args:
             total_time: Total workout time in minutes
@@ -89,13 +89,10 @@ class WorkoutService:
         
         if self.runner:
             self.runner.run_exercises(exercise_list)
-        self.session.add_all(workout.workout_exercises)
-        self.session.add(workout)
-        self.session.commit()
         
-        return exercise_list
+        return workout
 
-    def run_static_workout(self, workout_name: str) -> List[Exercise]:
+    def run_static_workout(self, workout_name: str) -> Workout:
         """Run a predefined static workout.
         
         Returns:
@@ -118,12 +115,8 @@ class WorkoutService:
         ]
         workout.workout_exercises = workout_exercises
         
-        self.session.add_all(workout_exercises)
         
         if self.runner:
             self.runner.run_exercises(exercises)
-            
-        self.session.add(workout)
-        self.session.commit()
         
-        return exercises
+        return workout
