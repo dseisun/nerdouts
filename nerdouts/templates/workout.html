@@ -72,6 +72,14 @@
 
 {% block scripts %}
 <script>
+// This is a template variable injected by Jinja2 at runtime
+/**
+ * NOTE: The IDE may show errors for the workout variable below because it can't
+ * properly parse Jinja2 template syntax. This is normal and can be safely ignored
+ * as the template engine will inject the correct data at runtime.
+ * 
+ * @type {Array<{name: string, default_time: number, repetition: number, prompt?: string, side?: string, sides?: string[]}>}
+ */
 const workout = {{ workout|tojson }};
 let currentExerciseIndex = -1;  // Start at -1 to show "Ready to begin"
 let currentRepetition = 0;
@@ -82,6 +90,40 @@ let ws = null;
 let isConnected = false;
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 5;
+let wakeLock = null;
+
+// Screen wake lock functionality
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock is active');
+        } else {
+            console.log('Wake Lock API not supported');
+        }
+    } catch (err) {
+        console.error(`Wake Lock error: ${err.name}, ${err.message}`);
+    }
+}
+
+async function releaseWakeLock() {
+    if (wakeLock) {
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+            console.log('Wake Lock released');
+        } catch (err) {
+            console.error(`Wake Lock release error: ${err.name}, ${err.message}`);
+        }
+    }
+}
+
+// Handle visibility change to reacquire wake lock if needed
+document.addEventListener('visibilitychange', async () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') {
+        await requestWakeLock();
+    }
+});
 
 // Initialize toast
 const toast = new bootstrap.Toast(document.getElementById('connection-toast'));
@@ -245,9 +287,14 @@ function continueExercise() {
     }
 }
 
-function nextExercise() {
+async function nextExercise() {
     if (timer) {
         clearInterval(timer);
+    }
+    
+    // Request wake lock when starting the first exercise
+    if (currentExerciseIndex === -1) {
+        await requestWakeLock();
     }
     
     if (currentExerciseIndex >= 0) {
@@ -282,6 +329,9 @@ function nextExercise() {
         ws.send(JSON.stringify({
             command: 'finish_workout'
         }));
+        
+        // Release wake lock when workout is complete
+        await releaseWakeLock();
         return;
     }
     
