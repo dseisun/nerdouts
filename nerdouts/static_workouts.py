@@ -62,7 +62,7 @@ def get_static_workouts() -> dict[str, List[Exercise]]:
             exercises.DOWNWARD_DOG,
             exercises.BRIDGE_HAMSTRING_CURL,
             exercises.POGO,
-            exercises.SINGLE_LEG_BRIDGE,
+            # exercises.SINGLE_LEG_BRIDGE,
             exercises.HIP_ROCKBACK,
         ],
         'nighttime': [
@@ -100,5 +100,23 @@ def get_static_workouts() -> dict[str, List[Exercise]]:
             exercises.LATERAL_LUNGE,
             exercises.SQUATS,
             exercises.DOWNWARD_DOG
+        ],
+        'no_equip': [
+            exercises.SPLIT_SQUAT,
+            exercises.NARROW_PUSHUPS,
+            exercises.BUTT_KICKERS,
+            exercises.INCLINE_PUSHUPS,
+            exercises.DOWNWARD_DOG,
+            exercises.HIP_MOBILIZATION,
+            exercises.CALF_LIFTS,
+            exercises.COPENHAGEN,
+            exercises.PLANK_WITH_LEG_LIFT,
+            exercises.DOWNWARD_DOG,
+            exercises.SITUPS,
+            exercises.SQUATS,
+            exercises.DOWNWARD_DOG,
+            exercises.DIPS,
+            exercises.JUMPING_JACKS,
+            exercises.SKATER_JUMPS
         ]
     }

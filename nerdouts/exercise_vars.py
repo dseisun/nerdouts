@@ -88,7 +88,7 @@ class Exercises():
         self.DUMBBELL_ROWS = self.get_by_name("Dumbbell rows")
         self.BRIDGE_HAMSTRING_CURL = self.get_by_name("Bridge hamstring curl")
         self.POGO = self.get_by_name("POGO")
-        self.SINGLE_LEG_BRIDGE = self.get_by_name("Single leg bridge")
+        
 
     def get_by_name(self, name) -> Exercise:
         res = list(filter(lambda x: x.name == name, self.exercises))
