@@ -16,6 +16,7 @@
                     <option value="{{ workout }}">{{ workout }}</option>
                     {% endfor %}
                 </select>
+                <div id="workoutLength" class="form-text mt-2"></div>
             </div>
             
             <div class="d-grid">
@@ -58,9 +59,22 @@ Array.from(workoutSelect.options).forEach(option => {
     }
 });
 
+// Workout lengths passed from backend
+const workoutLengths = JSON.parse('{{ workout_lengths|tojson|safe }}');
+
 // Monitor workout selection changes
 workoutSelect.addEventListener('change', (event) => {
-    debugLog(`Workout selected: ${event.target.value}`);
+    const selectedWorkout = event.target.value;
+    debugLog(`Workout selected: ${selectedWorkout}`);
+    
+    // Update workout length display
+    const lengthDisplay = document.getElementById('workoutLength');
+    if (selectedWorkout && workoutLengths[selectedWorkout]) {
+        lengthDisplay.textContent = `Estimated workout length: ${workoutLengths[selectedWorkout]} minutes`;
+        lengthDisplay.classList.add('text-muted');
+    } else {
+        lengthDisplay.textContent = '';
+    }
 });
 
 // Monitor form submission

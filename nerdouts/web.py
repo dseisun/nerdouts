@@ -122,11 +122,17 @@ async def static_workout_form(request: Request):
     """Form for selecting a static workout."""
     with app_context(debug=False):
         workouts = get_static_workouts()
+        # Create a dictionary of workout names and their lengths
+        workout_info = {
+            name: int(sum(e.time for e in exercises) / 60)  # Convert seconds to minutes
+            for name, exercises in workouts.items()
+        }
         return templates.TemplateResponse(
             "static_workout.html",
             {
                 "request": request,
-                "workouts": workouts.keys()
+                "workouts": workouts.keys(),
+                "workout_lengths": workout_info
             }
         )
 
