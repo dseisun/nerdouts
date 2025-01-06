@@ -235,7 +235,7 @@ def main():
     # Configure uvicorn with proper signal handling
     config = uvicorn.Config(
         app=app,
-        host="0.0.0.0",
+        host="localhost",
         port=8000,
         loop="asyncio",
         reload=False,  # Disable auto-reload to ensure proper signal handling
