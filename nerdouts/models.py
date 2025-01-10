@@ -16,15 +16,15 @@ class WorkoutExercise(Base):
     time_per_set: Mapped[int]
     repetition: Mapped[int]
     created_date = Column(DateTime, default=datetime.now())
-    workout = relationship("Workout", back_populates="workout_exercises")
-    exercise = relationship("Exercise", back_populates="workout_exercises")
+    workout: Mapped["Workout"] = relationship("Workout", back_populates="workout_exercises")
+    exercise: Mapped["Exercise"] = relationship("Exercise", back_populates="workout_exercises")
 
 
 class Workout(Base):
     __tablename__ = 'workout'
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now())
-    workout_exercises = relationship("WorkoutExercise", back_populates='workout')
+    workout_exercises: Mapped[list[WorkoutExercise]] = relationship("WorkoutExercise", back_populates='workout')
 
     @property
     def get_total_time(self):
@@ -70,7 +70,7 @@ class Exercise(Base):
     repetition: Mapped[int]
     prompt: Mapped[str]
     long_desc: Mapped[str]
-    workout_exercises = relationship("WorkoutExercise", back_populates='exercise')
+    workout_exercises: Mapped[list[WorkoutExercise]] = relationship("WorkoutExercise", back_populates='exercise')
 
     def sentence(self, side=''):
         return self.prompt.format(name=self.name, side=side)

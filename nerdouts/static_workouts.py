@@ -32,7 +32,6 @@ def get_static_workouts() -> dict[str, List[Exercise]]:
             exercises.SHADOW_BOXING,
             exercises.CURLS,
             exercises.HIP_ROCKBACK,
-            exercises.HAMSTRING_EXTENDER,
             exercises.SITUPS,
             exercises.CURLS,
             exercises.DIPS,

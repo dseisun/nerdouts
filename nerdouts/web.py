@@ -1,22 +1,25 @@
+import glob
 from fastapi import FastAPI, Request, Form, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+from textual import work
 import uvicorn
 import signal
 import sys
 import threading
 import json
 from typing import Optional, Dict
+import argparse
 
 from static_workouts import get_static_workouts
 from config import app_context, get_current_context, Config
 from sqlalchemy.orm import Session
-from workout_runner import WorkoutService, WorkoutRunner
+from workout_runner import WorkoutService
 from speech import _stop_input, get_speech_engine
 from music import SpotifyPlayer
-from models import ExerciseCategory
+from models import Exercise, ExerciseCategory, Workout, WorkoutExercise
 
 #TODO When display falls asleep, timer seems to stop
 #TODO 10 second countdown no longer works
@@ -25,14 +28,16 @@ from models import ExerciseCategory
 #TODO Add ability to add required/excluded exercises
 #TODO Write workout go database after (currently broken for dynamic and static)
 
+
+
 app = FastAPI()
 
 # Global workout runner for cleanup
-active_workout_runner: Optional[WorkoutRunner] = None
 workout_lock = threading.Lock()
 
-# Active WebSocket connections
+# Active WebSocket connections and their exercises
 active_connections: Dict[int, WebSocket] = {}
+active_workout_exercises: Dict[int, list[Exercise]] = {}
 
 # Set up templates directory
 templates_dir = Path(__file__).parent / "templates"
@@ -44,18 +49,6 @@ static_dir = Path(__file__).parent / "static"
 static_dir.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-def cleanup_workout():
-    """Clean up any active workout session."""
-    global active_workout_runner
-    with workout_lock:
-        if active_workout_runner:
-            # Signal the input thread to stop
-            _stop_input.set()
-            # Clean up music player if needed
-            if active_workout_runner.music_player:
-                active_workout_runner.music_player.pause()
-            active_workout_runner = None
-
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -63,6 +56,14 @@ async def websocket_endpoint(websocket: WebSocket):
     # Store connection
     connection_id = id(websocket)
     active_connections[connection_id] = websocket
+    
+    # Get the exercises if they exist from the most recent request
+    # This assumes the websocket connection is established right after the HTTP request
+    request_ids = list(active_workout_exercises.keys())
+    if request_ids:
+        most_recent_request_id = request_ids[-1]
+        active_workout_exercises[connection_id] = active_workout_exercises.pop(most_recent_request_id)
+    
     music_player = None
     try:
         # Initialize workout components
@@ -97,14 +98,39 @@ async def websocket_endpoint(websocket: WebSocket):
             elif command == "finish_workout":
                 music_player.pause()
                 speech_engine("Workout finished. You're going to be so jacked")
+                
+                # Process completed exercises if they exist
+                if connection_id in active_workout_exercises:
+                    # Write WorkoutExercises and Workout to db
+
+                    with Session(get_current_context().engine) as session:
+                        completed_exercises = active_workout_exercises[connection_id]
+                        workout_exercises = [
+                            WorkoutExercise(
+                                time_per_set = exercise.time,
+                                repetition = exercise.repetition,
+                                exercise = exercise
+                            ) for exercise in completed_exercises]
+                        workout = Workout()
+                        workout.workout_exercises.extend(workout_exercises)
+                        session.add(workout)
+                        session.commit()
+                        
+                        print(f"finished workout and have these exercises: {completed_exercises}")
+                    # Here you would typically write to database
+                    # For now we just clean up
+                    del active_workout_exercises[connection_id]
+                
                 break
     except Exception as e:
         print(f"WebSocket error: {e}")
     finally:
-        # Clean up connection
+        # Clean up connection and exercises
         if connection_id in active_connections:
             del active_connections[connection_id]
-        
+        if connection_id in active_workout_exercises:
+            del active_workout_exercises[connection_id]
+            
         # Clean up music player
         if music_player:
             music_player.pause()
@@ -120,35 +146,33 @@ async def home(request: Request):
 @app.get("/workout/static", response_class=HTMLResponse)
 async def static_workout_form(request: Request):
     """Form for selecting a static workout."""
-    with app_context(debug=False):
-        workouts = get_static_workouts()
-        # Create a dictionary of workout names and their lengths
-        workout_info = {
-            name: int(sum(e.time for e in exercises) / 60)  # Convert seconds to minutes
-            for name, exercises in workouts.items()
+    workouts = get_static_workouts()
+    # Create a dictionary of workout names and their lengths
+    workout_info = {
+        name: int(sum(e.time for e in exercises) / 60)  # Convert seconds to minutes
+        for name, exercises in workouts.items()
+    }
+    return templates.TemplateResponse(
+        "static_workout.html",
+        {
+            "request": request,
+            "workouts": workouts.keys(),
+            "workout_lengths": workout_info
         }
-        return templates.TemplateResponse(
-            "static_workout.html",
-            {
-                "request": request,
-                "workouts": workouts.keys(),
-                "workout_lengths": workout_info
-            }
-        )
+    )
 
 @app.post("/workout/static/start", response_class=HTMLResponse)
 async def start_static_workout(
     request: Request,
     workout_name: str = Form(...)
 ):
-    """Start a static workout session."""
-    with app_context(debug=False):
-        with Session(get_current_context().engine) as session:
-            service = WorkoutService(session)
-            # Get workout exercises without running them
-            exercises = get_static_workouts()[workout_name]
-            # Save to database
-            workout = service.run_static_workout(workout_name)
+
+    # Get workout exercises without running them
+    exercises = get_static_workouts()[workout_name]
+    workout = Workout()
+    # Store exercises for later use - we'll use request id as temporary storage key
+    request_id = id(request)
+    active_workout_exercises[request_id] = exercises
             
     return templates.TemplateResponse(
         "workout.html",
@@ -195,22 +219,22 @@ async def start_dynamic_workout(
     }
 
     workout_data = []
-    with app_context(debug=False):
-        with Session(get_current_context().engine) as session:
-            service = WorkoutService(session)
-            # Create Config with custom category weights
-            config = Config(total_time=time, categories=categories)
-            # Get workout exercises and extract data while session is active
-            workout = service.run_dynamic_workout(time, config=config)
-            for e in workout:
-                workout_data.append({
-                    "name": e.name,
-                    "default_time": e.default_time,
-                    "repetition": e.repetition,
-                    "sides": e.sides,
-                    "prompt": e.prompt,
-                    "side": e.side
-                })
+
+    with Session(get_current_context().engine) as session:
+        service = WorkoutService(session)
+        # Create Config with custom category weights
+        config = Config(total_time=time, categories=categories)
+        # Get workout exercises and extract data while session is active
+        workout = service.run_dynamic_workout(time, config=config)
+        for e in workout:
+            workout_data.append({
+                "name": e.name,
+                "default_time": e.default_time,
+                "repetition": e.repetition,
+                "sides": e.sides,
+                "prompt": e.prompt,
+                "side": e.side
+            })
             
     return templates.TemplateResponse(
         "workout.html",
@@ -223,7 +247,6 @@ async def start_dynamic_workout(
 def signal_handler(sig, frame):
     """Handle shutdown signals gracefully."""
     print("\nShutting down gracefully...")
-    cleanup_workout()
     sys.exit(0)
 
 def main():
@@ -245,7 +268,12 @@ def main():
     try:
         server.run()
     finally:
-        cleanup_workout()
+        pass
 
 if __name__ == "__main__":
-    main()
+    
+    parser = argparse.ArgumentParser(prog='Webapp for workouts')
+    parser.add_argument('--debug', '-d', action='store_true', default=False)
+    args = parser.parse_args()
+    with app_context(debug=args.debug):
+        main()

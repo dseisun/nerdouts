@@ -15,8 +15,7 @@ DEFAULT_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 def load_exercises_from_db() -> List[Exercise]:
     """Load exercises from database using the current app context"""
     # This ensures we're using the correct database based on the app context
-    ctx = get_current_context()
-    with Session(ctx.engine) as session:
+    with Session(get_current_context().engine) as session:
         return session.query(Exercise).all()
 
 def load_exercises_from_json(path=DEFAULT_EXERCISE_PATH) -> List[Exercise]:
