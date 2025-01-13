@@ -21,9 +21,7 @@ from speech import _stop_input, get_speech_engine
 from music import SpotifyPlayer
 from models import Exercise, ExerciseCategory, Workout, WorkoutExercise
 
-#TODO When display falls asleep, timer seems to stop
 #TODO 10 second countdown no longer works
-#TODO Add ability to pause
 #TODO Add ability to generate static workouts - migrate static workouts to db
 #TODO Add ability to add required/excluded exercises
 #TODO Write workout go database after (currently broken for dynamic and static)
@@ -226,14 +224,14 @@ async def start_dynamic_workout(
         config = Config(total_time=time, categories=categories)
         # Get workout exercises and extract data while session is active
         workout = service.run_dynamic_workout(time, config=config)
-        for e in workout:
+        for we in workout.workout_exercises:
             workout_data.append({
-                "name": e.name,
-                "default_time": e.default_time,
-                "repetition": e.repetition,
-                "sides": e.sides,
-                "prompt": e.prompt,
-                "side": e.side
+                "name": we.exercise.name,
+                "default_time": we.exercise.default_time,
+                "repetition": we.exercise.repetition,
+                "sides": we.exercise.sides,
+                "prompt": we.exercise.prompt,
+                "side": we.exercise.side
             })
             
     return templates.TemplateResponse(

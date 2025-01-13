@@ -89,3 +89,4 @@ class Exercise(Base):
     def __repr__(self):
         return ("<%s (name = %s, repetition = %s, sides = %s, default_time = %s)>"
                 % (self.__tablename__, self.name, self.repetition, self.sides, self.default_time))
+

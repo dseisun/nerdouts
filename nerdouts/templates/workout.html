@@ -87,6 +87,7 @@ let currentSideIndex = 0;
 let timer = null;
 let timeLeft = 0;
 let ws = null;
+let isPaused = false;
 let isConnected = false;
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 5;
@@ -216,8 +217,8 @@ function updateRepetitionCounter(exercise) {
     }
 }
 
-function startExerciseTimer(exercise) {
-    timeLeft = exercise.default_time;
+function startExerciseTimer(exercise, remainingTime = null) {
+    timeLeft = remainingTime !== null ? remainingTime : exercise.default_time;
     updateTimer(timeLeft);
     
     if (timer) {
@@ -309,11 +310,11 @@ async function nextExercise() {
     currentRepetition = 0;
     currentSideIndex = 0;
 
-    // Disable the start button after first click
+    // Transform start button into pause button after first click
     const nextButton = document.getElementById('next');
-    nextButton.disabled = true;
-    nextButton.classList.add('btn-secondary');
+    nextButton.textContent = 'Pause';
     nextButton.classList.remove('btn-primary');
+    nextButton.classList.add('btn-warning');
     
     if (currentExerciseIndex >= workout.length) {
         document.getElementById('current-exercise').textContent = 'Workout Complete!';
@@ -345,7 +346,36 @@ connectWebSocket();
 // Initialize workout list
 updateWorkoutList();
 
-document.getElementById('next').addEventListener('click', nextExercise);
+document.getElementById('next').addEventListener('click', () => {
+    const nextButton = document.getElementById('next');
+    
+    if (currentExerciseIndex === -1) {
+        // First click - start the workout
+        nextExercise();
+    } else {
+        // Subsequent clicks - handle pause/resume
+        if (isPaused) {
+            // Resume the timer
+            if (timeLeft > 0) {
+                startExerciseTimer(workout[currentExerciseIndex], timeLeft);
+            }
+            isPaused = false;
+            nextButton.textContent = 'Pause';
+            nextButton.classList.remove('btn-success');
+            nextButton.classList.add('btn-warning');
+        } else {
+            // Pause the timer
+            if (timer) {
+                clearInterval(timer);
+            }
+            isPaused = true;
+            nextButton.textContent = 'Resume';
+            nextButton.classList.remove('btn-warning');
+            nextButton.classList.add('btn-success');
+        }
+    }
+});
+
 document.getElementById('skip').addEventListener('click', () => {
     if (timer) {
         clearInterval(timer);
