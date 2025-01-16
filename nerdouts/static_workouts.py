@@ -1,8 +1,12 @@
-from typing import List
-from models import Exercise
+from typing import List, Dict
+from models import Exercise, StaticWorkout
 from exercise_vars import Exercises
+from sqlalchemy.orm import Session
+from config import get_current_context
+from itertools import groupby
+from operator import attrgetter
 
-def get_static_workouts() -> dict[str, List[Exercise]]:
+def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
     exercises = Exercises()
     return {
         'sample': [
@@ -121,3 +125,28 @@ def get_static_workouts() -> dict[str, List[Exercise]]:
             exercises.SKATER_JUMPS
         ]
     }
+
+def get_static_workouts_from_db() -> dict[str, List[Exercise]]:
+    """Get static workouts from the database"""
+    with Session(get_current_context().engine) as session:
+        # Query all static workouts and eager load the related exercises
+        static_workouts = session.query(StaticWorkout).join(StaticWorkout.exercise).all()
+        
+        # Group by workout_name and create a dictionary of workout name to list of exercises
+        workouts = {}
+        for workout_name, group in groupby(static_workouts, attrgetter('workout_name')):
+            workouts[workout_name] = [sw.exercise for sw in group]
+        
+        return workouts
+
+def get_static_workouts() -> dict[str, List[Exercise]]:
+    """Get static workouts from both code and database"""
+    # Get workouts from both sources
+    code_workouts = get_static_workouts_from_code()
+    db_workouts = get_static_workouts_from_db()
+    
+    # Merge workouts, preferring database versions if there are duplicates
+    merged_workouts = code_workouts.copy()
+    merged_workouts.update(db_workouts)
+    
+    return merged_workouts

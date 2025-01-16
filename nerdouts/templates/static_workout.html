@@ -5,7 +5,12 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h1 class="text-center mb-4">Choose a Workout</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Choose a Workout</h1>
+            {% if can_create %}
+            <a href="/workout/create-static" class="btn btn-success">Create New Workout</a>
+            {% endif %}
+        </div>
         
         <form id="workoutForm" action="/workout/static/start" method="post">
             <div class="mb-3">

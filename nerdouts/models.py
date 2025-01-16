@@ -11,8 +11,8 @@ Base = declarative_base()
 class WorkoutExercise(Base):
     __tablename__ = 'workout_exercise'
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    workout_id = Column(Integer, ForeignKey("workout.id"))
-    exercise_id = Column(Integer, ForeignKey("exercise.id"))
+    workout_id = mapped_column(ForeignKey("workout.id"))
+    exercise_id = mapped_column(ForeignKey("exercise.id"))
     time_per_set: Mapped[int]
     repetition: Mapped[int]
     created_date = Column(DateTime, default=datetime.now())
@@ -90,3 +90,10 @@ class Exercise(Base):
         return ("<%s (name = %s, repetition = %s, sides = %s, default_time = %s)>"
                 % (self.__tablename__, self.name, self.repetition, self.sides, self.default_time))
 
+
+class StaticWorkout(Base):
+    __tablename__ = 'static_workout'
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    workout_name: Mapped[str] = mapped_column(unique=False) # There will be many records with the same workout_name as the collection of all exercises for that given static workout
+    exercise_name: Mapped[str] = mapped_column(ForeignKey("exercise.name"))
+    exercise: Mapped[Exercise] = relationship("Exercise")

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="/static/js/workout_utils.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Create Static Workout</h2>
+    
+    <div class="mb-3">
+        <label for="workout-name" class="form-label">Workout Name</label>
+        <input type="text" class="form-control" id="workout-name" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="exercise-search" class="form-label">Search Exercises</label>
+        <input type="text" class="form-control" id="exercise-search" placeholder="Type to search exercises...">
+        <div id="exercise-list" class="list-group mt-2">
+            <!-- Exercise search results will be populated here -->
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Selected Exercises</h4>
+            <span id="total-time" class="text-muted"></span>
+        </div>
+        <div id="selected-exercises" class="list-group">
+            <!-- Selected exercises will be shown here -->
+        </div>
+    </div>
+
+    <button id="save-workout" class="btn btn-primary">Save Workout</button>
+</div>
+
+<script>
+let selectedExercises = []; // Array of {name, time} objects
+
+// Update total workout time display
+function updateTotalTime() {
+    const minutes = calculateWorkoutTime(selectedExercises);
+    const timeDisplay = document.getElementById('total-time');
+    timeDisplay.textContent = minutes > 0 ? formatWorkoutTime(minutes) : '';
+}
+
+// Debounce function to limit API calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// All exercises loaded from server
+const allExercises = JSON.parse('{{ exercises|tojson|safe }}');
+
+// Search exercises as user types
+const searchExercises = debounce((query) => {
+    const exerciseList = document.getElementById('exercise-list');
+    if (!query) {
+        exerciseList.innerHTML = '';
+        return;
+    }
+
+    const filteredExercises = allExercises.filter(exercise => 
+        exercise.name.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    exerciseList.innerHTML = filteredExercises.map(exercise => `
+        <button class="list-group-item list-group-item-action" 
+                onclick="addExercise('${exercise.name}')">
+            ${exercise.name} (${Math.round(exercise.time / 60)} min)
+        </button>
+    `).join('');
+}, 300);
+
+// Add exercise to selected list
+function addExercise(exerciseName) {
+    if (!selectedExercises.find(e => e.name === exerciseName)) {
+        const exercise = allExercises.find(e => e.name === exerciseName);
+        selectedExercises.push({name: exerciseName, time: exercise.time});
+        updateSelectedExercises();
+        updateTotalTime();
+    }
+}
+
+// Remove exercise from selected list
+function removeExercise(exerciseName) {
+    selectedExercises = selectedExercises.filter(e => e.name !== exerciseName);
+    updateSelectedExercises();
+    updateTotalTime();
+}
+
+// Update the selected exercises display
+function updateSelectedExercises() {
+    const container = document.getElementById('selected-exercises');
+    container.innerHTML = selectedExercises.map(exercise => `
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span>${exercise.name} (${Math.round(exercise.time / 60)} min)</span>
+            <button class="btn btn-danger btn-sm" onclick="removeExercise('${exercise.name}')">Remove</button>
+        </div>
+    `).join('');
+}
+
+// Handle search input
+document.getElementById('exercise-search').addEventListener('input', (e) => {
+    searchExercises(e.target.value);
+});
+
+// Handle save button click
+document.getElementById('save-workout').addEventListener('click', async () => {
+    const workoutName = document.getElementById('workout-name').value.trim();
+    
+    if (!workoutName) {
+        alert('Please enter a workout name');
+        return;
+    }
+    
+    if (selectedExercises.length === 0) {
+        alert('Please select at least one exercise');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/static-workout/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                workout_name: workoutName,
+                exercises: selectedExercises.map(e => e.name)
+            })
+        });
+        
+        if (response.ok) {
+            window.location.href = '/workout/static';
+        } else {
+            const error = await response.json();
+            alert(error.message || 'Error saving workout');
+        }
+    } catch (error) {
+        console.error('Error saving workout:', error);
+        alert('Error saving workout');
+    }
+});
+
+// Initialize total time display
+updateTotalTime();
+</script>
+{% endblock %}

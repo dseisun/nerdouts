@@ -2,6 +2,10 @@
 
 {% block title %}Workout in Progress{% endblock %}
 
+{% block head %}
+<script src="/static/js/workout_utils.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <!-- Workout List Sidebar -->
@@ -73,14 +77,14 @@
 {% block scripts %}
 <script>
 // This is a template variable injected by Jinja2 at runtime
-/**
- * NOTE: The IDE may show errors for the workout variable below because it can't
- * properly parse Jinja2 template syntax. This is normal and can be safely ignored
- * as the template engine will inject the correct data at runtime.
- * 
- * @type {Array<{name: string, default_time: number, repetition: number, prompt?: string, side?: string, sides?: string[]}>}
- */
-const workout = {{ workout|tojson }};
+const workout = {{ workout|tojson|safe }};
+
+// Initialize total workout time display
+document.addEventListener('DOMContentLoaded', () => {
+    const totalMinutes = calculateWorkoutTime(workout);
+    document.querySelector('.card-header h4').textContent = `Workout Plan (${formatWorkoutTime(totalMinutes)})`;
+});
+
 let currentExerciseIndex = -1;  // Start at -1 to show "Ready to begin"
 let currentRepetition = 0;
 let currentSideIndex = 0;

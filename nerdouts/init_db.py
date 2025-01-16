@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models import Base, Exercise
+from models import Base, Exercise, StaticWorkout
+from static_workouts import get_static_workouts_from_code
 from sqlalchemy import MetaData
 import json
 import argparse
@@ -39,6 +40,23 @@ class Exercises():
             return res[0]
 """)
 
+def load_static_workouts(session):
+    """Load static workouts from code into the database"""
+    code_workouts = get_static_workouts_from_code()
+    
+    for workout_name, exercises in code_workouts.items():
+        for exercise in exercises:
+            static_workout = StaticWorkout(
+                workout_name=workout_name,
+                exercise_name=exercise.name
+            )
+            try:
+                session.merge(static_workout)
+            except IntegrityError:
+                session.rollback()
+                continue
+    session.commit()
+
 def load_exercises(exercise_path, debug, generate_vars=True):
     ctx = get_current_context()
     exercises = json.load(open(exercise_path))
@@ -72,11 +90,17 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--exercises', help='Path to a JSON file of exercises for loading into the db')
     parser.add_argument('-d', dest='debug', action='store_true', help='Bootstrap to the QA db')
 
+    parser.add_argument('-s', '--static-workouts', action='store_true', help='Load static workouts from code into the database')
     args: argparse.Namespace = parser.parse_args()
+    
     with app_context(debug=args.debug) as ctx:
         engine = ctx.engine
         if args.force:
             Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
-        if args.exercises:
-            load_exercises(exercise_path=args.exercises, debug=args.debug, generate_vars=True)
+        
+        with Session(engine) as session:
+            if args.exercises:
+                load_exercises(exercise_path=args.exercises, debug=args.debug, generate_vars=True)
+            if args.static_workouts:
+                load_static_workouts(session)

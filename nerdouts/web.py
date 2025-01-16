@@ -1,6 +1,6 @@
 import glob
-from fastapi import FastAPI, Request, Form, WebSocket
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Form, WebSocket, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -10,16 +10,18 @@ import signal
 import sys
 import threading
 import json
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+from pydantic import BaseModel
 import argparse
 
 from static_workouts import get_static_workouts
 from config import app_context, get_current_context, Config
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from workout_runner import WorkoutService
 from speech import _stop_input, get_speech_engine
 from music import SpotifyPlayer
-from models import Exercise, ExerciseCategory, Workout, WorkoutExercise
+from models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
 
 #TODO 10 second countdown no longer works
 #TODO Add ability to generate static workouts - migrate static workouts to db
@@ -141,6 +143,46 @@ async def home(request: Request):
         {"request": request}
     )
 
+class StaticWorkoutCreate(BaseModel):
+    workout_name: str
+    exercises: List[str]
+
+@app.get("/workout/create-static", response_class=HTMLResponse)
+async def create_static_workout_form(request: Request):
+    """Form for creating a new static workout."""
+    with Session(get_current_context().engine) as session:
+        exercises = session.query(Exercise).all()
+        exercise_list = [{
+            "name": e.name,
+            "time": e.time  # This includes repetitions and sides
+        } for e in exercises]
+        
+    return templates.TemplateResponse(
+        "create_static_workout.html",
+        {
+            "request": request,
+            "exercises": exercise_list
+        }
+    )
+
+@app.post("/api/static-workout/save")
+async def save_static_workout(workout: StaticWorkoutCreate):
+    """Save a new static workout."""
+    with Session(get_current_context().engine) as session:
+        # Create StaticWorkout records for each exercise
+        for exercise_name in workout.exercises:
+            static_workout = StaticWorkout(
+                workout_name=workout.workout_name,
+                exercise_name=exercise_name
+            )
+            session.add(static_workout)
+        try:
+            session.commit()
+            return {"message": "Workout saved successfully"}
+        except IntegrityError:
+            session.rollback()
+            raise HTTPException(status_code=400, detail="Error saving workout")
+
 @app.get("/workout/static", response_class=HTMLResponse)
 async def static_workout_form(request: Request):
     """Form for selecting a static workout."""
@@ -155,7 +197,8 @@ async def static_workout_form(request: Request):
         {
             "request": request,
             "workouts": workouts.keys(),
-            "workout_lengths": workout_info
+            "workout_lengths": workout_info,
+            "can_create": True  # Add this to show the create button
         }
     )
 
