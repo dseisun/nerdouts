@@ -23,11 +23,12 @@ from speech import _stop_input, get_speech_engine
 from music import SpotifyPlayer
 from models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
 
+#TODO Can't add duplicate workouts in static workout generator
+#TODO if there's a conflicting static workout in the db static workouts in code are overwritten
 #TODO 10 second countdown no longer works
-#TODO Add ability to generate static workouts - migrate static workouts to db
 #TODO Add ability to add required/excluded exercises
 #TODO Write workout go database after (currently broken for dynamic and static)
-
+#TODO Use docker for it
 
 
 app = FastAPI()

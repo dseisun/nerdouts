@@ -8,7 +8,7 @@ from operator import attrgetter
 
 def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
     exercises = Exercises()
-    return {
+    workouts = {
         'sample': [
             exercises.CLAMSHELLS,
             exercises.HIGH_KICKS,
@@ -34,20 +34,22 @@ def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
         ],
         'day_1': [
             exercises.SHADOW_BOXING,
+            exercises.DOWNWARD_DOG,
+            exercises.QUADRAPED_ROCKBACK,
             exercises.CURLS,
-            exercises.HIP_ROCKBACK,
-            exercises.SITUPS,
-            exercises.CURLS,
-            exercises.DIPS,
-            exercises.ARM_SWINGS,
-            exercises.CALF_LIFTS,
-            exercises.STRAIGHT_PLANK,
             exercises.DUMBBELL_ROWS,
             exercises.DUMBBELL_BENCH_PRESS,
+            exercises.BACK_CURLS,
+            exercises.SITUPS,
+            exercises.CALF_LIFTS,
+            exercises.DIPS,
+            exercises.SHADOW_BOXING,
+            exercises.KICKSTAND_HIP_HINGE,
+            exercises.STRAIGHT_PLANK,
             exercises.HIP_MOBILIZATION,
             exercises.JUMPING_JACKS,
+            exercises.CURLS,
             exercises.DUMBBELL_ROWS,
-            exercises.DUMBBELL_BENCH_PRESS,
         ],
         'day_2': [
             exercises.DOWNWARD_DOG,
@@ -125,6 +127,8 @@ def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
             exercises.SKATER_JUMPS
         ]
     }
+    # Prepend 'code:' to all workout names
+    return {f"code:{name}": exercises for name, exercises in workouts.items()}
 
 def get_static_workouts_from_db() -> dict[str, List[Exercise]]:
     """Get static workouts from the database"""
@@ -135,7 +139,7 @@ def get_static_workouts_from_db() -> dict[str, List[Exercise]]:
         # Group by workout_name and create a dictionary of workout name to list of exercises
         workouts = {}
         for workout_name, group in groupby(static_workouts, attrgetter('workout_name')):
-            workouts[workout_name] = [sw.exercise for sw in group]
+            workouts[f"db:{workout_name}"] = [sw.exercise for sw in group]
         
         return workouts
 
