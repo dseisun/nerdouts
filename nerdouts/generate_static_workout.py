@@ -45,3 +45,4 @@ def get_exercise_by_name(name: str, exercises: List[Exercise]) -> Exercise:
         raise Exception(f"No exercise with name {name} found")
     else:
         return res[0]
+

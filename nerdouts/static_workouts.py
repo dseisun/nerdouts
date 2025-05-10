@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from config import get_current_context
 from itertools import groupby
 from operator import attrgetter
+import logging
 
 def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
     exercises = Exercises()
@@ -17,20 +18,19 @@ def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
             exercises.JUMP_ROPE,
             exercises.NARROW_PUSHUPS
         ],
-        'pt_cool_down_day': [
-            exercises.HIP_MOBILIZATION,
-            exercises.HALF_KNEELING_HIP_FLEXOR_STRETCH,
-            exercises.QUADRAPED_ROCKBACK
-        ],
-        'tmp': [
-            exercises.DOWNWARD_DOG,
-            exercises.HIP_MOBILIZATION,
+        
+        'groin_injured': [
             exercises.ARM_SWINGS,
+            exercises.DOWNWARD_DOG,
+            exercises.CURLS,
+            exercises.DUMBBELL_ROWS,
             exercises.CALF_LIFTS,
-            exercises.HALF_KNEELING_HIP_FLEXOR_STRETCH,
-            exercises.DIPS,
             exercises.CALF_STRETCH,
-            exercises.QUADRAPED_ROCKBACK
+            exercises.DUMBBELL_BENCH_PRESS,
+            exercises.BACK_CURLS,
+            exercises.QUAD_STRETCH,
+            exercises.DIPS,
+            exercises.SITUPS,
         ],
         'day_1': [
             exercises.SHADOW_BOXING,
@@ -42,10 +42,12 @@ def get_static_workouts_from_code() -> dict[str, List[Exercise]]:
             exercises.BACK_CURLS,
             exercises.SITUPS,
             exercises.CALF_LIFTS,
+            exercises.CAPTAIN_MORGAN,
             exercises.DIPS,
             exercises.SHADOW_BOXING,
             exercises.KICKSTAND_HIP_HINGE,
-            exercises.STRAIGHT_PLANK,
+            exercises.SQUATS,
+            exercises.COPENHAGEN,
             exercises.HIP_MOBILIZATION,
             exercises.JUMPING_JACKS,
             exercises.CURLS,

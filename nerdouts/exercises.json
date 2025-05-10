@@ -838,5 +838,15 @@
     "repetition": 2,
     "prompt": "{name}. 2 reps of 30 seconds. {side} side",
     "long_desc": "Do a bridge but with the legs half extended. At the peak lift one leg off the ground"
+  },
+  {
+    "date_added": "2025-03-09",
+    "name": "Captain morgan",
+    "category_id": "physical_therapy",
+    "side": "Both",
+    "default_time": 30,
+    "repetition": 2,
+    "prompt": "{name}. One legged squats with knee against roller on the wall. {side} side",
+    "long_desc": "https://www.youtube.com/shorts/jhKG_FI3J-g"
   }
 ]

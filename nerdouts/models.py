@@ -17,7 +17,7 @@ class WorkoutExercise(Base):
     repetition: Mapped[int]
     created_date = Column(DateTime, default=datetime.now())
     workout: Mapped["Workout"] = relationship("Workout", back_populates="workout_exercises")
-    exercise: Mapped["Exercise"] = relationship("Exercise", back_populates="workout_exercises")
+    exercise: Mapped["Exercise"] = relationship("Exercise", back_populates="workout_exercises", lazy="joined")
 
 
 class Workout(Base):
@@ -96,4 +96,4 @@ class StaticWorkout(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     workout_name: Mapped[str] = mapped_column(unique=False) # There will be many records with the same workout_name as the collection of all exercises for that given static workout
     exercise_name: Mapped[str] = mapped_column(ForeignKey("exercise.name"))
-    exercise: Mapped[Exercise] = relationship("Exercise")
+    exercise: Mapped[Exercise] = relationship("Exercise", lazy="joined")
