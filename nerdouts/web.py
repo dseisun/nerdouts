@@ -14,14 +14,14 @@ from typing import Optional, Dict, List
 from pydantic import BaseModel
 import argparse
 
-from static_workouts import get_static_workouts
-from config import app_context, get_current_context, Config
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from workout_runner import WorkoutService
-from speech import _stop_input, get_speech_engine
-from music import SpotifyPlayer
-from models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
+from nerdouts.static_workouts import get_static_workouts
+from nerdouts.workout_runner import WorkoutService
+from nerdouts.config import app_context, get_current_context, Config
+from nerdouts.speech import _stop_input, get_speech_engine
+from nerdouts.music import SpotifyPlayer
+from nerdouts.models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
 
 #TODO Can't add duplicate workouts in static workout generator
 #TODO if there's a conflicting static workout in the db static workouts in code are overwritten

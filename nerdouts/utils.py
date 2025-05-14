@@ -1,5 +1,5 @@
 from typing import List
-from models import Exercise
+from nerdouts.models import Exercise
 
 
 def get_workout_length(exercises: List[Exercise]) -> int:

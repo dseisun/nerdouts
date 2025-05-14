@@ -1,4 +1,4 @@
-from models import ExerciseCategory
+from nerdouts.models import ExerciseCategory
 
 def test_exercise_category_ordering():
     # Test ordering

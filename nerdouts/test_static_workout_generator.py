@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch
 import os
 import pytest
-import generate_static_workout
+import nerdouts.generate_static_workout
 
 TEST_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_exercises.json')
 

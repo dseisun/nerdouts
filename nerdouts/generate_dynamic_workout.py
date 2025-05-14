@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from itertools import count, groupby
 from random import random, sample
 
-from models import Exercise, Workout, WorkoutExercise, ExerciseCategory
-from config import Config, get_current_context
+from nerdouts.models import Exercise, Workout, WorkoutExercise, ExerciseCategory
+from nerdouts.config import Config, get_current_context
 from datetime import datetime
 
 def generate_dynamic_workout(session: Session, config: Config) -> Workout:

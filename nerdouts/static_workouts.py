@@ -1,8 +1,8 @@
 from typing import List, Dict
-from models import Exercise, StaticWorkout
-from exercise_vars import Exercises
+from nerdouts.models import Exercise, StaticWorkout
+from nerdouts.exercise_vars import Exercises
 from sqlalchemy.orm import Session
-from config import get_current_context
+from nerdouts.config import get_current_context
 from itertools import groupby
 from operator import attrgetter
 import logging

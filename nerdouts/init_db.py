@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models import Base, Exercise, StaticWorkout
-from static_workouts import get_static_workouts_from_code
+from nerdouts.models import Base, Exercise, StaticWorkout
+from nerdouts.static_workouts import get_static_workouts_from_code
 from sqlalchemy import MetaData
 import json
 import argparse
 import re
 import os
-from config import get_current_context, app_context
+from nerdouts.config import get_current_context, app_context
 
 def name_to_var(name: str) -> str:
     name = re.sub(r'\d', '', name)

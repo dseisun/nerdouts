@@ -1,4 +1,4 @@
-from music_player import MusicPlayer
+from nerdouts.music_player import MusicPlayer
 import subprocess
 
 class SpotifyPlayer(MusicPlayer):

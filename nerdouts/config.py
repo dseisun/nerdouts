@@ -1,7 +1,7 @@
 import logging
-from models import ExerciseCategory, Exercise
+from nerdouts.models import ExerciseCategory, Exercise
 from typing import Dict, List, Optional
-from database import set_engine_for_ctx
+from nerdouts.database import set_engine_for_ctx
 from contextlib import contextmanager
 
 class AppContext:

@@ -1,6 +1,6 @@
 from functools import partial
-from generate_static_workout import load_exercises_from_db
-from models import Exercise
+from nerdouts.generate_static_workout import load_exercises_from_db
+from nerdouts.models import Exercise
 
 class Exercises():
     def __init__(self) -> None:

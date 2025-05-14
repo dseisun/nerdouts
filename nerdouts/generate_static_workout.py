@@ -6,9 +6,9 @@ import json
 import os
 
 from sqlalchemy.orm import Session
-from config import get_current_context
+from nerdouts.config import get_current_context
 
-from models import Exercise
+from nerdouts.models import Exercise
 
 DEFAULT_EXERCISE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'./exercises.json')
 
