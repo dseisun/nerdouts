@@ -6,11 +6,13 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Create Static Workout</h2>
+    <h2>{{ "Edit" if mode == "edit" else "Create" }} Static Workout</h2>
     
     <div class="mb-3">
         <label for="workout-name" class="form-label">Workout Name</label>
-        <input type="text" class="form-control" id="workout-name" required>
+        <input type="text" class="form-control" id="workout-name" 
+               value="{{ workout_name if mode == 'edit' else '' }}"
+               {{ "readonly" if mode == "edit" else "" }} required>
     </div>
 
     <div class="mb-3">
@@ -24,24 +26,90 @@
     <div class="mb-3">
         <div class="d-flex justify-content-between align-items-center">
             <h4>Selected Exercises</h4>
-            <span id="total-time" class="text-muted"></span>
         </div>
-        <div id="selected-exercises" class="list-group">
+        
+        <!-- Prominent total time display -->
+        <div class="alert alert-info d-flex justify-content-between align-items-center mb-3" id="time-display">
+            <div>
+                <strong id="total-time">No exercises selected</strong>
+            </div>
+            <div>
+                <span class="badge bg-primary fs-6" id="time-badge">0 min</span>
+            </div>
+        </div>
+        <div id="selected-exercises" class="list-group" style="min-height: 100px;">
             <!-- Selected exercises will be shown here -->
         </div>
+        <div class="form-text">Tip: Drag and drop exercises to reorder them</div>
     </div>
 
-    <button id="save-workout" class="btn btn-primary">Save Workout</button>
+    <div class="d-flex gap-2">
+        <button id="save-workout" class="btn btn-primary">{{ "Update" if mode == "edit" else "Save" }} Workout</button>
+        {% if mode == "edit" %}
+        <button id="delete-workout" class="btn btn-danger">Delete Workout</button>
+        {% endif %}
+        <a href="/workout/static" class="btn btn-secondary">Cancel</a>
+    </div>
 </div>
 
 <script>
-let selectedExercises = []; // Array of {name, time} objects
+const mode = '{{ mode }}';
+const workoutName = '{{ workout_name if mode == "edit" else "" }}';
+
+// Initialize selectedExercises - load existing exercises if in edit mode
+let selectedExercises = [];
+{% if mode == "edit" and selected_exercises %}
+selectedExercises = JSON.parse('{{ selected_exercises|tojson|safe }}');
+{% endif %}
+
+// Define calculateWorkoutTime function inline to ensure it's available
+function calculateWorkoutTime(exercises) {
+    const totalSeconds = exercises.reduce((total, exercise) => {
+        // For create_static_workout.html, exercises is an array of {time} objects
+        if ('time' in exercise) {
+            return total + exercise.time;
+        } else {
+            // Fallback for other formats
+            const sidesCount = exercise.side === 'Both' ? 2 : 1;
+            return total + (exercise.default_time * exercise.repetition * sidesCount);
+        }
+    }, 0);
+    
+    return Math.round(totalSeconds / 60); // Return minutes
+}
+
+function formatWorkoutTime(minutes) {
+    return `Total workout time: ${minutes} minutes`;
+}
 
 // Update total workout time display
 function updateTotalTime() {
     const minutes = calculateWorkoutTime(selectedExercises);
+    
     const timeDisplay = document.getElementById('total-time');
-    timeDisplay.textContent = minutes > 0 ? formatWorkoutTime(minutes) : '';
+    const timeBadge = document.getElementById('time-badge');
+    const timeContainer = document.getElementById('time-display');
+    
+    if (minutes > 0) {
+        timeDisplay.textContent = formatWorkoutTime(minutes);
+        timeBadge.textContent = `${minutes} min`;
+        
+        // Add some visual feedback based on workout length
+        timeContainer.className = 'alert d-flex justify-content-between align-items-center mb-3 ';
+        if (minutes < 15) {
+            timeContainer.className += 'alert-info';
+        } else if (minutes < 30) {
+            timeContainer.className += 'alert-success';
+        } else if (minutes < 60) {
+            timeContainer.className += 'alert-warning';
+        } else {
+            timeContainer.className += 'alert-danger';
+        }
+    } else {
+        timeDisplay.textContent = 'No exercises selected yet';
+        timeBadge.textContent = '0 min';
+        timeContainer.className = 'alert alert-secondary d-flex justify-content-between align-items-center mb-3';
+    }
 }
 
 // Debounce function to limit API calls
@@ -80,19 +148,17 @@ const searchExercises = debounce((query) => {
     `).join('');
 }, 300);
 
-// Add exercise to selected list
+// Add exercise to selected list (allows duplicates)
 function addExercise(exerciseName) {
-    if (!selectedExercises.find(e => e.name === exerciseName)) {
-        const exercise = allExercises.find(e => e.name === exerciseName);
-        selectedExercises.push({name: exerciseName, time: exercise.time});
-        updateSelectedExercises();
-        updateTotalTime();
-    }
+    const exercise = allExercises.find(e => e.name === exerciseName);
+    selectedExercises.push({name: exerciseName, time: exercise.time});
+    updateSelectedExercises();
+    updateTotalTime();
 }
 
-// Remove exercise from selected list
-function removeExercise(exerciseName) {
-    selectedExercises = selectedExercises.filter(e => e.name !== exerciseName);
+// Remove exercise from selected list by index
+function removeExercise(index) {
+    selectedExercises.splice(index, 1);
     updateSelectedExercises();
     updateTotalTime();
 }
@@ -100,12 +166,78 @@ function removeExercise(exerciseName) {
 // Update the selected exercises display
 function updateSelectedExercises() {
     const container = document.getElementById('selected-exercises');
-    container.innerHTML = selectedExercises.map(exercise => `
-        <div class="list-group-item d-flex justify-content-between align-items-center">
-            <span>${exercise.name} (${Math.round(exercise.time / 60)} min)</span>
-            <button class="btn btn-danger btn-sm" onclick="removeExercise('${exercise.name}')">Remove</button>
+    container.innerHTML = selectedExercises.map((exercise, index) => `
+        <div class="list-group-item d-flex justify-content-between align-items-center" 
+             draggable="true" 
+             data-index="${index}"
+             style="cursor: move;">
+            <div class="d-flex align-items-center">
+                <span class="me-2" style="cursor: grab;">⋮⋮</span>
+                <span>${exercise.name} (${Math.round(exercise.time / 60)} min)</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="removeExercise(${index})">Remove</button>
         </div>
     `).join('');
+    
+    // Add drag and drop event listeners
+    setupDragAndDrop();
+}
+
+// Setup drag and drop functionality
+function setupDragAndDrop() {
+    const container = document.getElementById('selected-exercises');
+    const items = container.querySelectorAll('.list-group-item[draggable="true"]');
+    
+    let draggedElement = null;
+    let draggedIndex = null;
+    
+    items.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            draggedElement = item;
+            draggedIndex = parseInt(item.dataset.index);
+            item.style.opacity = '0.5';
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        
+        item.addEventListener('dragend', (e) => {
+            item.style.opacity = '1';
+            draggedElement = null;
+            draggedIndex = null;
+        });
+        
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            if (draggedElement && draggedElement !== item) {
+                const dropIndex = parseInt(item.dataset.index);
+                
+                // Reorder the selectedExercises array
+                const draggedExercise = selectedExercises[draggedIndex];
+                selectedExercises.splice(draggedIndex, 1);
+                selectedExercises.splice(dropIndex, 0, draggedExercise);
+                
+                // Update the display
+                updateSelectedExercises();
+                updateTotalTime();
+            }
+        });
+        
+        item.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            if (draggedElement && draggedElement !== item) {
+                item.style.backgroundColor = '#f8f9fa';
+            }
+        });
+        
+        item.addEventListener('dragleave', (e) => {
+            item.style.backgroundColor = '';
+        });
+    });
 }
 
 // Handle search input
@@ -115,9 +247,10 @@ document.getElementById('exercise-search').addEventListener('input', (e) => {
 
 // Handle save button click
 document.getElementById('save-workout').addEventListener('click', async () => {
-    const workoutName = document.getElementById('workout-name').value.trim();
+    const workoutNameInput = document.getElementById('workout-name').value.trim();
+    const finalWorkoutName = mode === 'edit' ? workoutName : workoutNameInput;
     
-    if (!workoutName) {
+    if (!finalWorkoutName) {
         alert('Please enter a workout name');
         return;
     }
@@ -128,13 +261,18 @@ document.getElementById('save-workout').addEventListener('click', async () => {
     }
     
     try {
-        const response = await fetch('/api/static-workout/save', {
-            method: 'POST',
+        const url = mode === 'edit' 
+            ? `/api/static-workout/${finalWorkoutName}`
+            : '/api/static-workout/save';
+        const method = mode === 'edit' ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                workout_name: workoutName,
+                workout_name: finalWorkoutName,
                 exercises: selectedExercises.map(e => e.name)
             })
         });
@@ -143,7 +281,7 @@ document.getElementById('save-workout').addEventListener('click', async () => {
             window.location.href = '/workout/static';
         } else {
             const error = await response.json();
-            alert(error.message || 'Error saving workout');
+            alert(error.detail || error.message || 'Error saving workout');
         }
     } catch (error) {
         console.error('Error saving workout:', error);
@@ -151,7 +289,34 @@ document.getElementById('save-workout').addEventListener('click', async () => {
     }
 });
 
-// Initialize total time display
+// Handle delete button click (only in edit mode)
+{% if mode == "edit" %}
+document.getElementById('delete-workout').addEventListener('click', async () => {
+    if (!confirm(`Are you sure you want to delete the workout "${workoutName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/static-workout/${workoutName}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Workout deleted successfully');
+            window.location.href = '/workout/static';
+        } else {
+            const error = await response.json();
+            alert(error.detail || 'Error deleting workout');
+        }
+    } catch (error) {
+        console.error('Error deleting workout:', error);
+        alert('Error deleting workout');
+    }
+});
+{% endif %}
+
+// Initialize display
+updateSelectedExercises();
 updateTotalTime();
 </script>
 {% endblock %}

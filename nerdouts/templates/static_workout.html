@@ -22,6 +22,7 @@
                     {% endfor %}
                 </select>
                 <div id="workoutLength" class="form-text mt-2"></div>
+                <div id="workoutActions" class="mt-2"></div>
             </div>
             
             <div class="d-grid">
@@ -66,6 +67,7 @@ Array.from(workoutSelect.options).forEach(option => {
 
 // Workout lengths passed from backend
 const workoutLengths = JSON.parse('{{ workout_lengths|tojson|safe }}');
+const dbWorkouts = JSON.parse('{{ db_workouts|tojson|safe }}');
 
 // Monitor workout selection changes
 workoutSelect.addEventListener('change', (event) => {
@@ -74,13 +76,60 @@ workoutSelect.addEventListener('change', (event) => {
     
     // Update workout length display
     const lengthDisplay = document.getElementById('workoutLength');
+    const actionsDisplay = document.getElementById('workoutActions');
+    
     if (selectedWorkout && workoutLengths[selectedWorkout]) {
         lengthDisplay.textContent = `Estimated workout length: ${workoutLengths[selectedWorkout]} minutes`;
         lengthDisplay.classList.add('text-muted');
     } else {
         lengthDisplay.textContent = '';
     }
+    
+    // Show edit/delete buttons for database workouts
+    if (selectedWorkout && dbWorkouts.includes(selectedWorkout)) {
+        actionsDisplay.innerHTML = `
+            <div class="d-flex gap-2">
+                <a href="/workout/edit-static/${encodeURIComponent(selectedWorkout)}" class="btn btn-outline-primary btn-sm">Edit Workout</a>
+                <button onclick="deleteWorkout('${selectedWorkout}')" class="btn btn-outline-danger btn-sm">Delete Workout</button>
+            </div>
+        `;
+    } else {
+        actionsDisplay.innerHTML = '';
+    }
 });
+
+// Function to delete a workout
+async function deleteWorkout(workoutName) {
+    if (!confirm(`Are you sure you want to delete the workout "${workoutName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    debugLog(`Attempting to delete workout: ${workoutName}`);
+    
+    try {
+        // Remove the "db:" prefix for the API call
+        const cleanWorkoutName = workoutName.startsWith('db:') ? workoutName.substring(3) : workoutName;
+        
+        const response = await fetch(`/api/static-workout/${encodeURIComponent(cleanWorkoutName)}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            debugLog(`Workout ${workoutName} deleted successfully`);
+            alert('Workout deleted successfully');
+            // Clear the selection before reloading
+            document.getElementById('workout').value = '';
+            location.reload(); // Refresh the page to update the workout list
+        } else {
+            const error = await response.json();
+            debugLog(`Error deleting workout: ${error.detail}`, 'error');
+            alert(error.detail || 'Error deleting workout');
+        }
+    } catch (error) {
+        debugLog(`Error deleting workout: ${error.message}`, 'error');
+        alert('Error deleting workout');
+    }
+}
 
 // Monitor form submission
 const form = document.getElementById('workoutForm');

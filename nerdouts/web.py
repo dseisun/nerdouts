@@ -23,10 +23,8 @@ from nerdouts.speech import _stop_input, get_speech_engine
 from nerdouts.music import SpotifyPlayer
 from nerdouts.models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
 
-#TODO Can't add duplicate workouts in static workout generator
-#TODO Ability to more completely edit database workouts from the UI
+
 #TODO Add ability to add required/excluded exercises
-#TODO Write workout to database after (currently broken for dynamic and static)
 #TODO Use docker for it
 
 
@@ -164,15 +162,67 @@ async def create_static_workout_form(request: Request):
         "create_static_workout.html",
         {
             "request": request,
-            "exercises": exercise_list
+            "exercises": exercise_list,
+            "mode": "create"
+        }
+    )
+
+@app.get("/workout/edit-static/{workout_name}", response_class=HTMLResponse)
+async def edit_static_workout_form(request: Request, workout_name: str):
+    """Form for editing an existing static workout."""
+    # Only allow editing database workouts
+    if not workout_name.startswith("db:"):
+        raise HTTPException(status_code=403, detail="Cannot edit code-defined workouts")
+    
+    # Remove the "db:" prefix for the API call
+    clean_workout_name = workout_name[3:]
+    
+    with Session(get_current_context().engine) as session:
+        # Get all exercises for the dropdown
+        exercises = session.query(Exercise).all()
+        exercise_list = [{
+            "name": e.name,
+            "time": e.time
+        } for e in exercises]
+        
+        # Get the existing workout data
+        static_workouts = session.query(StaticWorkout).filter(
+            StaticWorkout.workout_name == clean_workout_name
+        ).order_by(StaticWorkout.id).all()
+        
+        if not static_workouts:
+            raise HTTPException(status_code=404, detail="Workout not found")
+        
+        selected_exercises = [{
+            "name": sw.exercise_name,
+            "time": sw.exercise.time
+        } for sw in static_workouts]
+        
+    return templates.TemplateResponse(
+        "create_static_workout.html",
+        {
+            "request": request,
+            "exercises": exercise_list,
+            "mode": "edit",
+            "workout_name": clean_workout_name,
+            "selected_exercises": selected_exercises
         }
     )
 
 @app.post("/api/static-workout/save")
 async def save_static_workout(workout: StaticWorkoutCreate):
     """Save a new static workout."""
+    if not workout.exercises:
+        raise HTTPException(status_code=400, detail="Workout must contain at least one exercise")
+    
     with Session(get_current_context().engine) as session:
-        # Create StaticWorkout records for each exercise
+        # Verify all exercises exist
+        for exercise_name in workout.exercises:
+            exercise = session.query(Exercise).filter(Exercise.name == exercise_name).first()
+            if not exercise:
+                raise HTTPException(status_code=400, detail=f"Exercise '{exercise_name}' not found")
+        
+        # Create StaticWorkout records for each exercise (allows duplicates)
         for exercise_name in workout.exercises:
             static_workout = StaticWorkout(
                 workout_name=workout.workout_name,
@@ -186,6 +236,81 @@ async def save_static_workout(workout: StaticWorkoutCreate):
             session.rollback()
             raise HTTPException(status_code=400, detail="Error saving workout")
 
+@app.get("/api/static-workout/{workout_name}")
+async def get_static_workout(workout_name: str):
+    """Get a static workout for editing."""
+    with Session(get_current_context().engine) as session:
+        static_workouts = session.query(StaticWorkout).filter(
+            StaticWorkout.workout_name == workout_name
+        ).order_by(StaticWorkout.id).all()
+        
+        if not static_workouts:
+            raise HTTPException(status_code=404, detail="Workout not found")
+            
+        return {
+            "workout_name": workout_name,
+            "exercises": [sw.exercise_name for sw in static_workouts]
+        }
+
+@app.put("/api/static-workout/{workout_name}")
+async def update_static_workout(workout_name: str, workout: StaticWorkoutCreate):
+    """Update an existing static workout."""
+    if not workout.exercises:
+        raise HTTPException(status_code=400, detail="Workout must contain at least one exercise")
+    
+    with Session(get_current_context().engine) as session:
+        # Verify all exercises exist
+        for exercise_name in workout.exercises:
+            exercise = session.query(Exercise).filter(Exercise.name == exercise_name).first()
+            if not exercise:
+                raise HTTPException(status_code=400, detail=f"Exercise '{exercise_name}' not found")
+        
+        # Check if workout exists
+        existing = session.query(StaticWorkout).filter(
+            StaticWorkout.workout_name == workout_name
+        ).first()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Workout not found")
+        
+        # Delete all existing entries for this workout
+        session.query(StaticWorkout).filter(
+            StaticWorkout.workout_name == workout_name
+        ).delete()
+        
+        # Create new entries in the specified order
+        for exercise_name in workout.exercises:
+            static_workout = StaticWorkout(
+                workout_name=workout_name,
+                exercise_name=exercise_name
+            )
+            session.add(static_workout)
+        
+        try:
+            session.commit()
+            return {"message": "Workout updated successfully"}
+        except IntegrityError:
+            session.rollback()
+            raise HTTPException(status_code=400, detail="Error updating workout")
+
+@app.delete("/api/static-workout/{workout_name}")
+async def delete_static_workout(workout_name: str):
+    """Delete a static workout."""
+    with Session(get_current_context().engine) as session:
+        # Check if workout exists
+        existing = session.query(StaticWorkout).filter(
+            StaticWorkout.workout_name == workout_name
+        ).first()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Workout not found")
+        
+        # Delete all entries for this workout
+        deleted_count = session.query(StaticWorkout).filter(
+            StaticWorkout.workout_name == workout_name
+        ).delete()
+        
+        session.commit()
+        return {"message": "Workout deleted successfully", "deleted_exercises": deleted_count}
+
 @app.get("/workout/static", response_class=HTMLResponse)
 async def static_workout_form(request: Request):
     """Form for selecting a static workout."""
@@ -195,13 +320,20 @@ async def static_workout_form(request: Request):
         name: int(sum(e.time for e in exercises) / 60)  # Convert seconds to minutes
         for name, exercises in workouts.items()
     }
+    
+    # Separate database workouts (can be edited/deleted) from code workouts
+    db_workouts = [name for name in workouts.keys() if name.startswith("db:")]
+    code_workouts = [name for name in workouts.keys() if name.startswith("code:")]
+    
     return templates.TemplateResponse(
         "static_workout.html",
         {
             "request": request,
             "workouts": workouts.keys(),
             "workout_lengths": workout_info,
-            "can_create": True  # Add this to show the create button
+            "db_workouts": db_workouts,
+            "code_workouts": code_workouts,
+            "can_create": True
         }
     )
 
@@ -212,7 +344,11 @@ async def start_static_workout(
 ):
 
     # Get workout exercises without running them
-    exercises = get_static_workouts()[workout_name]
+    workouts = get_static_workouts()
+    if workout_name not in workouts:
+        raise HTTPException(status_code=404, detail=f"Workout '{workout_name}' not found")
+    
+    exercises = workouts[workout_name]
     workout = Workout()
     # Store exercises for later use - we'll use request id as temporary storage key
     request_id = id(request)
