@@ -14,7 +14,7 @@
             <div class="card-header">
                 <h4>Workout Plan</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body scrollable-container">
                 <div class="list-group" id="workout-list">
                     {% for exercise in workout %}
                     <div class="list-group-item" data-exercise-index="{{ loop.index0 }}">
@@ -238,6 +238,13 @@ function startExerciseTimer(exercise, remainingTime = null) {
             clearInterval(timer);
             continueExercise();
         }
+
+        if (timeLeft == 10) {
+            ws.send(JSON.stringify({
+                command: "ten_seconds_left"
+            }))
+        }
+
     }, 1000);
 }
 

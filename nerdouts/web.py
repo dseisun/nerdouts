@@ -24,10 +24,9 @@ from nerdouts.music import SpotifyPlayer
 from nerdouts.models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
 
 #TODO Can't add duplicate workouts in static workout generator
-#TODO if there's a conflicting static workout in the db static workouts in code are overwritten
-#TODO 10 second countdown no longer works
+#TODO Ability to more completely edit database workouts from the UI
 #TODO Add ability to add required/excluded exercises
-#TODO Write workout go database after (currently broken for dynamic and static)
+#TODO Write workout to database after (currently broken for dynamic and static)
 #TODO Use docker for it
 
 
@@ -85,7 +84,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Announce exercise
                 music_player.pause()
                 # Only include side in announcement if it exists
-                announcement = prompt.format(name=exercise_name, side=side) if side else prompt.format(name=exercise_name)
+                announcement: str = prompt.format(name=exercise_name, side=side) if side else prompt.format(name=exercise_name)
                 speech_engine(announcement)
                 music_player.play()
                 
@@ -95,6 +94,9 @@ async def websocket_endpoint(websocket: WebSocket):
             elif command == "complete_exercise":
                 # Optional exercise completion announcement
                 pass
+
+            elif command == "ten_seconds_left":
+                speech_engine("Ten seconds left")
                 
             elif command == "finish_workout":
                 music_player.pause()

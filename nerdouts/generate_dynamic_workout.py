@@ -26,6 +26,11 @@ def generate_dynamic_workout(session: Session, config: Config) -> Workout:
     for category_name, category_time in config.exercise_category_times.items():
         cat_whitelisted_exercises: Iterator[Exercise] = filter(lambda exc: exc.category_id == category_name, db_whitelist)
         remaining_cat_time = category_time - sum(map(lambda exc: exc.time, cat_whitelisted_exercises))
+        
+        # Skip this category if no exercises are available
+        if category_name not in exc_by_cat_shuffled:
+            continue
+            
         cat_excercises: List[Exercise] = exc_by_cat_shuffled[category_name]
         for i in count():
             exc = cat_excercises[i % len(cat_excercises)] # Loop around the list of exc if needed
