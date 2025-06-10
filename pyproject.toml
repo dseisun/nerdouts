@@ -23,6 +23,7 @@ dependencies = [
     "websockets>=13.1",
     "textual>=0.73.0",
     "psycopg2>=2.9.10",
+    "requests>=2.32.3",
 ]
 
 [project.optional-dependencies]

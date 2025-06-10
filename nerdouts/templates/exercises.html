@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Exercises{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Manage Exercises</h1>
+            
+            <div class="mb-3">
+                <a href="/exercises/new" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Add New Exercise
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
+            </div>
+            
+            <div class="mb-3">
+                <input type="text" id="searchExercises" class="form-control" placeholder="Search exercises...">
+            </div>
+            
+            <div class="mb-3">
+                <div class="btn-group" role="group" aria-label="Category filter">
+                    <input type="radio" class="btn-check" name="categoryFilter" id="filterAll" value="all" checked>
+                    <label class="btn btn-outline-primary" for="filterAll">All</label>
+                    
+                    <input type="radio" class="btn-check" name="categoryFilter" id="filterPhysicalTherapy" value="physical_therapy">
+                    <label class="btn btn-outline-primary" for="filterPhysicalTherapy">Physical Therapy</label>
+                    
+                    <input type="radio" class="btn-check" name="categoryFilter" id="filterStretch" value="stretch">
+                    <label class="btn btn-outline-primary" for="filterStretch">Stretch</label>
+                    
+                    <input type="radio" class="btn-check" name="categoryFilter" id="filterStrength" value="strength">
+                    <label class="btn btn-outline-primary" for="filterStrength">Strength</label>
+                    
+                    <input type="radio" class="btn-check" name="categoryFilter" id="filterRolling" value="rolling">
+                    <label class="btn btn-outline-primary" for="filterRolling">Rolling</label>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Time per Set</th>
+                            <th>Reps</th>
+                            <th>Side</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exercisesList">
+                        <!-- Exercises will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noExercises" class="text-center text-muted mt-5" style="display: none;">
+                <p>No exercises found.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allExercises = [];
+    
+    async function loadExercises() {
+        try {
+            const response = await fetch('/api/exercises');
+            allExercises = await response.json();
+            filterAndDisplayExercises();
+        } catch (error) {
+            console.error('Error loading exercises:', error);
+        }
+    }
+    
+    function filterAndDisplayExercises() {
+        const searchTerm = document.getElementById('searchExercises').value.toLowerCase();
+        const categoryFilter = document.querySelector('input[name="categoryFilter"]:checked').value;
+        
+        let filteredExercises = allExercises;
+        
+        if (categoryFilter !== 'all') {
+            filteredExercises = filteredExercises.filter(ex => ex.category === categoryFilter);
+        }
+        
+        if (searchTerm) {
+            filteredExercises = filteredExercises.filter(ex => 
+                ex.name.toLowerCase().includes(searchTerm) ||
+                (ex.description && ex.description.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        displayExercises(filteredExercises);
+    }
+    
+    function displayExercises(exercises) {
+        const tbody = document.getElementById('exercisesList');
+        const noExercises = document.getElementById('noExercises');
+        
+        if (exercises.length === 0) {
+            tbody.innerHTML = '';
+            noExercises.style.display = 'block';
+            return;
+        }
+        
+        noExercises.style.display = 'none';
+        tbody.innerHTML = exercises.map(exercise => `
+            <tr>
+                <td>${exercise.name}</td>
+                <td><span class="badge bg-secondary">${exercise.category}</span></td>
+                <td>${exercise.time_per_set}s</td>
+                <td>${exercise.reps || '-'}</td>
+                <td>${exercise.side === 'Null' ? 'None' : exercise.side || 'None'}</td>
+                <td>
+                    <a href="/exercises/edit/${exercise.id}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <button class="btn btn-sm btn-danger" onclick="deleteExercise(${exercise.id}, '${exercise.name}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    async function deleteExercise(id, name) {
+        if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/exercises/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                loadExercises();
+            } else {
+                alert('Error deleting exercise');
+            }
+        } catch (error) {
+            console.error('Error deleting exercise:', error);
+            alert('Error deleting exercise');
+        }
+    }
+    
+    // Event listeners
+    document.getElementById('searchExercises').addEventListener('input', filterAndDisplayExercises);
+    document.querySelectorAll('input[name="categoryFilter"]').forEach(radio => {
+        radio.addEventListener('change', filterAndDisplayExercises);
+    });
+    
+    // Load exercises on page load
+    loadExercises();
+</script>
+{% endblock %}

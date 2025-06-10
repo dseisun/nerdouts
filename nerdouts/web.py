@@ -311,6 +311,53 @@ async def delete_static_workout(workout_name: str):
         session.commit()
         return {"message": "Workout deleted successfully", "deleted_exercises": deleted_count}
 
+@app.get("/exercises", response_class=HTMLResponse)
+async def exercises_page(request: Request):
+    """Exercise management page."""
+    return templates.TemplateResponse(
+        "exercises.html",
+        {"request": request}
+    )
+
+@app.get("/exercises/new", response_class=HTMLResponse)
+async def new_exercise_form(request: Request):
+    """Form for creating a new exercise."""
+    return templates.TemplateResponse(
+        "exercise_form.html",
+        {
+            "request": request,
+            "exercise": None
+        }
+    )
+
+@app.get("/exercises/edit/{exercise_id}", response_class=HTMLResponse)
+async def edit_exercise_form(request: Request, exercise_id: int):
+    """Form for editing an existing exercise."""
+    with Session(get_current_context().engine) as session:
+        exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not exercise:
+            raise HTTPException(status_code=404, detail="Exercise not found")
+        
+        # Convert to dict for template
+        exercise_data = {
+            "id": exercise.id,
+            "name": exercise.name,
+            "category": exercise.category_id.value,
+            "description": exercise.long_desc,
+            "time_per_set": exercise.default_time,
+            "reps": exercise.repetition,
+            "side": exercise.side,
+            "prompt": exercise.prompt
+        }
+        
+    return templates.TemplateResponse(
+        "exercise_form.html",
+        {
+            "request": request,
+            "exercise": exercise_data
+        }
+    )
+
 @app.get("/workout/static", response_class=HTMLResponse)
 async def static_workout_form(request: Request):
     """Form for selecting a static workout."""
@@ -423,6 +470,130 @@ async def start_dynamic_workout(
             "workout": workout_data
         }
     )
+
+class ExerciseCreate(BaseModel):
+    name: str
+    category: str
+    description: Optional[str] = None
+    time_per_set: int
+    reps: Optional[int] = None
+    side: Optional[str] = None
+    prompt: Optional[str] = None
+
+@app.get("/api/exercises")
+async def get_exercises():
+    """Get all exercises."""
+    with Session(get_current_context().engine) as session:
+        exercises = session.query(Exercise).all()
+        return [
+            {
+                "id": e.id,
+                "name": e.name,
+                "category": e.category_id.value,
+                "description": e.long_desc,
+                "time_per_set": e.default_time,
+                "reps": e.repetition,
+                "side": e.side,
+                "prompt": e.prompt,
+                "time": e.time
+            }
+            for e in exercises
+        ]
+
+@app.post("/api/exercises")
+async def create_exercise(exercise: ExerciseCreate):
+    """Create a new exercise."""
+    with Session(get_current_context().engine) as session:
+        # Check if exercise with same name already exists
+        existing = session.query(Exercise).filter(Exercise.name == exercise.name).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Exercise with this name already exists")
+        
+        # Convert string category to enum
+        try:
+            category_enum = ExerciseCategory(exercise.category)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid category")
+        
+        new_exercise = Exercise(
+            name=exercise.name,
+            category_id=category_enum,
+            long_desc=exercise.description or "",
+            default_time=exercise.time_per_set,
+            repetition=exercise.reps or 1,
+            side=exercise.side or "Null",
+            prompt=exercise.prompt or ""
+        )
+        
+        session.add(new_exercise)
+        session.commit()
+        session.refresh(new_exercise)
+        
+        return {
+            "id": new_exercise.id,
+            "name": new_exercise.name,
+            "category": new_exercise.category_id.value,
+            "message": "Exercise created successfully"
+        }
+
+@app.put("/api/exercises/{exercise_id}")
+async def update_exercise(exercise_id: int, exercise: ExerciseCreate):
+    """Update an existing exercise."""
+    with Session(get_current_context().engine) as session:
+        existing_exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not existing_exercise:
+            raise HTTPException(status_code=404, detail="Exercise not found")
+        
+        # Check if another exercise with the same name exists
+        duplicate = session.query(Exercise).filter(
+            Exercise.name == exercise.name,
+            Exercise.id != exercise_id
+        ).first()
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Another exercise with this name already exists")
+        
+        # Convert string category to enum
+        try:
+            category_enum = ExerciseCategory(exercise.category)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid category")
+        
+        # Update fields
+        existing_exercise.name = exercise.name
+        existing_exercise.category_id = category_enum
+        existing_exercise.long_desc = exercise.description or ""
+        existing_exercise.default_time = exercise.time_per_set
+        existing_exercise.repetition = exercise.reps or 1
+        existing_exercise.side = exercise.side or "Null"
+        existing_exercise.prompt = exercise.prompt or ""
+        
+        session.commit()
+        
+        return {"message": "Exercise updated successfully"}
+
+@app.delete("/api/exercises/{exercise_id}")
+async def delete_exercise(exercise_id: int):
+    """Delete an exercise."""
+    with Session(get_current_context().engine) as session:
+        exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not exercise:
+            raise HTTPException(status_code=404, detail="Exercise not found")
+        
+        # Check if exercise is used in any static workouts
+        used_in_workouts = session.query(StaticWorkout).filter(
+            StaticWorkout.exercise_name == exercise.name
+        ).first()
+        
+        if used_in_workouts:
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot delete exercise that is used in static workouts"
+            )
+        
+        session.delete(exercise)
+        session.commit()
+        
+        return {"message": "Exercise deleted successfully"}
 
 def signal_handler(sig, frame):
     """Handle shutdown signals gracefully."""

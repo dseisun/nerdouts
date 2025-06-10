@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit" if exercise else "New" }} Exercise{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="mb-4">{{ "Edit" if exercise else "New" }} Exercise</h1>
+            
+            <form id="exerciseForm">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Exercise Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           value="{{ exercise.name if exercise else '' }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="">Select a category</option>
+                        <option value="physical_therapy" {% if exercise and exercise.category == 'physical_therapy' %}selected{% endif %}>Physical Therapy</option>
+                        <option value="stretch" {% if exercise and exercise.category == 'stretch' %}selected{% endif %}>Stretch</option>
+                        <option value="strength" {% if exercise and exercise.category == 'strength' %}selected{% endif %}>Strength</option>
+                        <option value="rolling" {% if exercise and exercise.category == 'rolling' %}selected{% endif %}>Rolling</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ exercise.description if exercise else '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="time_per_set" class="form-label">Time per Set (seconds) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="time_per_set" name="time_per_set" 
+                           value="{{ exercise.time_per_set if exercise else '' }}" min="1" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="reps" class="form-label">Repetitions</label>
+                    <input type="number" class="form-control" id="reps" name="reps" 
+                           value="{{ exercise.reps if exercise else '' }}" min="1">
+                    <small class="form-text text-muted">Leave empty for time-based exercises</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="side" class="form-label">Side</label>
+                    <select class="form-select" id="side" name="side">
+                        <option value="Null" {% if not exercise or exercise.side == 'Null' or exercise.side == '' %}selected{% endif %}>None (not side-specific)</option>
+                        <option value="Both" {% if exercise and exercise.side == 'Both' %}selected{% endif %}>Both (alternating sides)</option>
+                        <option value="Left" {% if exercise and exercise.side == 'Left' %}selected{% endif %}>Left only</option>
+                        <option value="Right" {% if exercise and exercise.side == 'Right' %}selected{% endif %}>Right only</option>
+                    </select>
+                    <small class="form-text text-muted">Select how this exercise handles sides</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="prompt" class="form-label">Voice Prompt</label>
+                    <input type="text" class="form-control" id="prompt" name="prompt" 
+                           value="{{ exercise.prompt if exercise else '' }}"
+                           placeholder="Optional custom prompt for voice announcement">
+                    <small class="form-text text-muted">Leave empty to use the exercise name</small>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> {{ "Update" if exercise else "Save" }} Exercise
+                    </button>
+                    <a href="/exercises" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const exerciseId = {{ exercise.id if exercise else 'null' }};
+    
+    document.getElementById('exerciseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const exerciseData = {
+            name: formData.get('name'),
+            category: formData.get('category'),
+            description: formData.get('description') || null,
+            time_per_set: parseInt(formData.get('time_per_set')),
+            reps: formData.get('reps') ? parseInt(formData.get('reps')) : null,
+            side: formData.get('side') || null,
+            prompt: formData.get('prompt') || null
+        };
+        
+        try {
+            const url = exerciseId ? `/api/exercises/${exerciseId}` : '/api/exercises';
+            const method = exerciseId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(exerciseData)
+            });
+            
+            if (response.ok) {
+                window.location.href = '/exercises';
+            } else {
+                const error = await response.json();
+                alert(`Error saving exercise: ${error.detail || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error saving exercise:', error);
+            alert('Error saving exercise');
+        }
+    });
+</script>
+{% endblock %}
