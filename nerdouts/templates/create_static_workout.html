@@ -280,7 +280,7 @@ document.getElementById('save-workout').addEventListener('click', async () => {
     
     try {
         const url = mode === 'edit' 
-            ? `/api/static-workout/${finalWorkoutName}`
+            ? `/api/static-workout?name=${encodeURIComponent(finalWorkoutName)}`
             : '/api/static-workout/save';
         const method = mode === 'edit' ? 'PUT' : 'POST';
         
@@ -315,7 +315,7 @@ document.getElementById('delete-workout').addEventListener('click', async () => 
     }
     
     try {
-        const response = await fetch(`/api/static-workout/${workoutName}`, {
+        const response = await fetch(`/api/static-workout?name=${encodeURIComponent(workoutName)}`, {
             method: 'DELETE'
         });
         

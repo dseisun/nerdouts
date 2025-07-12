@@ -167,9 +167,14 @@ async def create_static_workout_form(request: Request):
         }
     )
 
-@app.get("/workout/edit-static/{workout_name}", response_class=HTMLResponse)
-async def edit_static_workout_form(request: Request, workout_name: str):
+@app.get("/workout/edit-static", response_class=HTMLResponse)
+async def edit_static_workout_form(request: Request):
     """Form for editing an existing static workout."""
+    # Get workout_name from query parameters
+    workout_name = request.query_params.get("name")
+    if not workout_name:
+        raise HTTPException(status_code=400, detail="Workout name is required")
+    
     # Only allow editing database workouts
     if not workout_name.startswith("db:"):
         raise HTTPException(status_code=403, detail="Cannot edit code-defined workouts")
@@ -236,9 +241,13 @@ async def save_static_workout(workout: StaticWorkoutCreate):
             session.rollback()
             raise HTTPException(status_code=400, detail="Error saving workout")
 
-@app.get("/api/static-workout/{workout_name}")
-async def get_static_workout(workout_name: str):
+@app.get("/api/static-workout")
+async def get_static_workout(request: Request):
     """Get a static workout for editing."""
+    workout_name = request.query_params.get("name")
+    if not workout_name:
+        raise HTTPException(status_code=400, detail="Workout name is required")
+    
     with Session(get_current_context().engine) as session:
         static_workouts = session.query(StaticWorkout).filter(
             StaticWorkout.workout_name == workout_name
@@ -252,9 +261,13 @@ async def get_static_workout(workout_name: str):
             "exercises": [sw.exercise_name for sw in static_workouts]
         }
 
-@app.put("/api/static-workout/{workout_name}")
-async def update_static_workout(workout_name: str, workout: StaticWorkoutCreate):
+@app.put("/api/static-workout")
+async def update_static_workout(request: Request, workout: StaticWorkoutCreate):
     """Update an existing static workout."""
+    workout_name = request.query_params.get("name")
+    if not workout_name:
+        raise HTTPException(status_code=400, detail="Workout name is required")
+    
     if not workout.exercises:
         raise HTTPException(status_code=400, detail="Workout must contain at least one exercise")
     
@@ -292,9 +305,13 @@ async def update_static_workout(workout_name: str, workout: StaticWorkoutCreate)
             session.rollback()
             raise HTTPException(status_code=400, detail="Error updating workout")
 
-@app.delete("/api/static-workout/{workout_name}")
-async def delete_static_workout(workout_name: str):
+@app.delete("/api/static-workout")
+async def delete_static_workout(request: Request):
     """Delete a static workout."""
+    workout_name = request.query_params.get("name")
+    if not workout_name:
+        raise HTTPException(status_code=400, detail="Workout name is required")
+    
     with Session(get_current_context().engine) as session:
         # Check if workout exists
         existing = session.query(StaticWorkout).filter(

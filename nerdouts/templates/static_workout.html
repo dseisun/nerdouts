@@ -89,7 +89,7 @@ workoutSelect.addEventListener('change', (event) => {
     if (selectedWorkout && dbWorkouts.includes(selectedWorkout)) {
         actionsDisplay.innerHTML = `
             <div class="d-flex gap-2">
-                <a href="/workout/edit-static/${encodeURIComponent(selectedWorkout)}" class="btn btn-outline-primary btn-sm">Edit Workout</a>
+                <a href="/workout/edit-static?name=${encodeURIComponent(selectedWorkout)}" class="btn btn-outline-primary btn-sm">Edit Workout</a>
                 <button onclick="deleteWorkout('${selectedWorkout}')" class="btn btn-outline-danger btn-sm">Delete Workout</button>
             </div>
         `;
@@ -110,7 +110,7 @@ async function deleteWorkout(workoutName) {
         // Remove the "db:" prefix for the API call
         const cleanWorkoutName = workoutName.startsWith('db:') ? workoutName.substring(3) : workoutName;
         
-        const response = await fetch(`/api/static-workout/${encodeURIComponent(cleanWorkoutName)}`, {
+        const response = await fetch(`/api/static-workout?name=${encodeURIComponent(cleanWorkoutName)}`, {
             method: 'DELETE'
         });
         
