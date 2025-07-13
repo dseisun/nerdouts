@@ -8,7 +8,6 @@ from nerdouts.config import Config, get_current_context
 from nerdouts.generate_dynamic_workout import generate_dynamic_workout
 from nerdouts.models import Exercise, Workout, WorkoutExercise
 from nerdouts.music import MusicPlayer, SpotifyPlayer
-from nerdouts.speech import countdown, get_speech_engine
 from nerdouts.static_workouts import get_static_workouts
 from nerdouts.exercise_vars import Exercises
 import nerdouts.utils

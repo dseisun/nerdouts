@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}TTS Test{% endblock %}
+
+{% block head %}
+<!-- TTS script will be loaded in the scripts block to ensure proper order -->
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Text-to-Speech Test Page</h2>
+    
+    <!-- Status Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">TTS Status</h5>
+            <p>Support Status: <span id="support-status" class="badge">Checking...</span></p>
+            <p>Available Voices: <span id="voice-count" class="badge">0</span></p>
+            <p>Current Voice: <span id="current-voice">None selected</span></p>
+        </div>
+    </div>
+    
+    <!-- Test Controls -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Test Speech</h5>
+            
+            <div class="mb-3">
+                <label for="test-text" class="form-label">Text to Speak</label>
+                <input type="text" class="form-control" id="test-text" 
+                       value="Ten seconds left" placeholder="Enter text to speak">
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="rate-slider" class="form-label">Rate: <span id="rate-value">1.0</span></label>
+                    <input type="range" class="form-range" id="rate-slider" 
+                           min="0.5" max="2" step="0.1" value="1">
+                </div>
+                <div class="col-md-4">
+                    <label for="pitch-slider" class="form-label">Pitch: <span id="pitch-value">1.0</span></label>
+                    <input type="range" class="form-range" id="pitch-slider" 
+                           min="0.5" max="2" step="0.1" value="1">
+                </div>
+                <div class="col-md-4">
+                    <label for="volume-slider" class="form-label">Volume: <span id="volume-value">1.0</span></label>
+                    <input type="range" class="form-range" id="volume-slider" 
+                           min="0" max="1" step="0.1" value="1">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="voice-select" class="form-label">Voice</label>
+                <select class="form-select" id="voice-select">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+            
+            <div class="btn-group" role="group">
+                <button id="speak-btn" class="btn btn-primary">Speak</button>
+                <button id="stop-btn" class="btn btn-danger">Stop</button>
+                <button id="pause-btn" class="btn btn-warning">Pause</button>
+                <button id="resume-btn" class="btn btn-success">Resume</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Workout Phrases Test -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Workout Phrases</h5>
+            <p>Click to test common workout announcements:</p>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary workout-phrase" 
+                        data-text="Starting exercise: Push-ups">Starting Push-ups</button>
+                <button class="btn btn-outline-primary workout-phrase" 
+                        data-text="Ten seconds left">10 Seconds Warning</button>
+                <button class="btn btn-outline-primary workout-phrase" 
+                        data-text="Switch to left side">Switch Sides</button>
+                <button class="btn btn-outline-primary workout-phrase" 
+                        data-text="Workout finished. You're going to be so jacked">Workout Complete</button>
+                <button class="btn btn-outline-primary workout-phrase" 
+                        data-text="Rest for 30 seconds">Rest Period</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Browser Compatibility Info -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Browser Compatibility</h5>
+            <div id="browser-info">
+                <p>User Agent: <code id="user-agent"></code></p>
+                <p>Platform: <span id="platform"></span></p>
+                <p>Browser: <span id="browser"></span></p>
+                <div id="compatibility-notes" class="alert alert-info mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Load TTS script first -->
+<script src="/static/js/tts.js" onerror="console.error('Failed to load tts.js')"></script>
+
+<script>
+// Wait for script to load
+window.addEventListener('load', () => {
+    console.log('Page loaded, checking for WorkoutTTS...');
+// Add debugging
+console.log('TTS script loaded, WorkoutTTS available:', typeof WorkoutTTS !== 'undefined');
+
+// Initialize TTS after ensuring the class is loaded
+let tts;
+try {
+    tts = new WorkoutTTS();
+    console.log('TTS initialized successfully:', tts);
+    
+    // Set up callback for when voices are loaded
+    tts.onVoicesLoaded = (voices) => {
+        console.log('Voices loaded callback triggered, count:', voices.length);
+        loadVoices();
+    };
+} catch (error) {
+    console.error('Failed to initialize TTS:', error);
+}
+
+// Browser detection
+function detectBrowser() {
+    const ua = navigator.userAgent;
+    document.getElementById('user-agent').textContent = ua;
+    document.getElementById('platform').textContent = navigator.platform;
+    
+    let browser = 'Unknown';
+    let notes = '';
+    
+    if (/CriOS/.test(ua)) {
+        browser = 'Chrome on iOS';
+        notes = 'Chrome on iOS uses WebKit. Speech synthesis may have limitations. Consider using Safari for best results.';
+    } else if (/Chrome/.test(ua) && !/Edg/.test(ua)) {
+        browser = 'Chrome';
+    } else if (/Safari/.test(ua) && !/Chrome/.test(ua)) {
+        browser = 'Safari';
+    } else if (/Firefox/.test(ua)) {
+        browser = 'Firefox';
+    } else if (/Edg/.test(ua)) {
+        browser = 'Edge';
+    }
+    
+    document.getElementById('browser').textContent = browser;
+    
+    if (notes) {
+        const notesEl = document.getElementById('compatibility-notes');
+        notesEl.textContent = notes;
+        notesEl.style.display = 'block';
+    }
+}
+
+// Update UI based on TTS support
+function updateStatus() {
+    const supportStatus = document.getElementById('support-status');
+    if (tts.isSupported) {
+        supportStatus.textContent = 'Supported';
+        supportStatus.classList.add('bg-success');
+        
+        // For Chrome, add a note about voice loading
+        if (/Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent)) {
+            console.log('Chrome detected, voices may load after first speech');
+        }
+    } else {
+        supportStatus.textContent = 'Not Supported';
+        supportStatus.classList.add('bg-danger');
+        document.getElementById('speak-btn').disabled = true;
+    }
+}
+
+// Load voices into select dropdown
+function loadVoices() {
+    const voices = tts.getVoices();
+    const voiceSelect = document.getElementById('voice-select');
+    const voiceCount = document.getElementById('voice-count');
+    
+    voiceCount.textContent = voices.length;
+    voiceCount.classList.add(voices.length > 0 ? 'bg-success' : 'bg-warning');
+    
+    voiceSelect.innerHTML = '';
+    
+    if (voices.length === 0) {
+        voiceSelect.innerHTML = '<option value="">No voices available</option>';
+        return;
+    }
+    
+    voices.forEach((voice, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${voice.name} (${voice.lang})${voice.localService ? ' [Local]' : ''}`;
+        voiceSelect.appendChild(option);
+    });
+    
+    // Update current voice display
+    if (tts.selectedVoice) {
+        document.getElementById('current-voice').textContent = tts.selectedVoice.name;
+    }
+}
+
+// Event Handlers
+document.getElementById('speak-btn').addEventListener('click', async () => {
+    const text = document.getElementById('test-text').value;
+    if (!text) return;
+    
+    try {
+        await tts.speak(text);
+        console.log('Speech completed');
+        
+        // Chrome often loads voices after first speech
+        if (tts.getVoices().length > 0 && document.getElementById('voice-select').options.length <= 1) {
+            console.log('Voices now available, updating list...');
+            loadVoices();
+        }
+    } catch (error) {
+        console.error('Speech error:', error);
+        alert('Speech error: ' + error.message);
+    }
+});
+
+document.getElementById('stop-btn').addEventListener('click', () => {
+    tts.stop();
+});
+
+document.getElementById('pause-btn').addEventListener('click', () => {
+    tts.pause();
+});
+
+document.getElementById('resume-btn').addEventListener('click', () => {
+    tts.resume();
+});
+
+// Voice selection
+document.getElementById('voice-select').addEventListener('change', (e) => {
+    const voiceIndex = parseInt(e.target.value);
+    if (!isNaN(voiceIndex)) {
+        tts.setVoice(voiceIndex);
+        const voices = tts.getVoices();
+        document.getElementById('current-voice').textContent = voices[voiceIndex].name;
+    }
+});
+
+// Sliders
+document.getElementById('rate-slider').addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById('rate-value').textContent = value.toFixed(1);
+    tts.updateSettings({ rate: value });
+});
+
+document.getElementById('pitch-slider').addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById('pitch-value').textContent = value.toFixed(1);
+    tts.updateSettings({ pitch: value });
+});
+
+document.getElementById('volume-slider').addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById('volume-value').textContent = value.toFixed(1);
+    tts.updateSettings({ volume: value });
+});
+
+// Workout phrase buttons
+document.querySelectorAll('.workout-phrase').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const text = e.target.dataset.text;
+        try {
+            await tts.speak(text);
+        } catch (error) {
+            console.error('Speech error:', error);
+        }
+    });
+});
+
+    // Initialize everything
+    detectBrowser();
+    updateStatus();
+    
+    // Load voices (may need to wait for them to be available)
+    setTimeout(() => {
+        loadVoices();
+        
+        // If still no voices, try again
+        if (tts && tts.getVoices().length === 0) {
+            setTimeout(loadVoices, 1000);
+        }
+    }, 100);
+
+    // Handle voice list changes (Chrome loads voices asynchronously)
+    if (window.speechSynthesis && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => {
+            console.log('Voices changed event fired');
+            loadVoices();
+        };
+    }
+});
+
+// Add more debugging for voice loading
+console.log('speechSynthesis available:', 'speechSynthesis' in window);
+if ('speechSynthesis' in window) {
+    console.log('Initial voices:', speechSynthesis.getVoices());
+    
+    // Try multiple times to load voices
+    let voiceLoadAttempts = 0;
+    const tryLoadVoices = () => {
+        voiceLoadAttempts++;
+        console.log(`Voice load attempt ${voiceLoadAttempts}:`, speechSynthesis.getVoices().length, 'voices');
+        loadVoices();
+        
+        if (speechSynthesis.getVoices().length === 0 && voiceLoadAttempts < 5) {
+            setTimeout(tryLoadVoices, 500);
+        }
+    };
+    
+    // Some browsers need a user interaction first
+    document.addEventListener('click', () => {
+        if (speechSynthesis.getVoices().length === 0) {
+            console.log('Loading voices after user interaction...');
+            tryLoadVoices();
+        }
+    }, { once: true });
+}
+</script>
+{% endblock %}

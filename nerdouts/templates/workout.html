@@ -3,7 +3,7 @@
 {% block title %}Workout in Progress{% endblock %}
 
 {% block head %}
-<script src="/static/js/workout_utils.js"></script>
+<!-- Scripts will be loaded in the scripts block to ensure proper order -->
 {% endblock %}
 
 {% block content %}
@@ -75,14 +75,40 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Load required scripts first -->
+<script src="/static/js/workout_utils.js"></script>
+<script src="/static/js/tts.js"></script>
+
 <script>
 // This is a template variable injected by Jinja2 at runtime
 const workout = {{ workout|tojson|safe }};
 
-// Initialize total workout time display
+// Wait for DOM to be ready before using workout_utils functions
 document.addEventListener('DOMContentLoaded', () => {
-    const totalMinutes = calculateWorkoutTime(workout);
-    document.querySelector('.card-header h4').textContent = `Workout Plan (${formatWorkoutTime(totalMinutes)})`;
+    // Initialize TTS after all scripts are loaded
+    try {
+        workoutTTS = new WorkoutTTS();
+        console.log('Workout TTS initialized');
+        
+        // Use the Chrome workaround to preload voices
+        if (workoutTTS.isSupported && workoutTTS.getVoices().length === 0) {
+            // Trigger voice loading
+            const silentUtterance = new SpeechSynthesisUtterance('');
+            silentUtterance.volume = 0;
+            speechSynthesis.speak(silentUtterance);
+            speechSynthesis.cancel();
+        }
+    } catch (error) {
+        console.error('Failed to initialize TTS:', error);
+    }
+    
+    // Check if workout_utils loaded properly
+    if (typeof calculateWorkoutTime === 'function') {
+        const totalMinutes = calculateWorkoutTime(workout);
+        document.querySelector('.card-header h4').textContent = `Workout Plan (${formatWorkoutTime(totalMinutes)})`;
+    } else {
+        console.error('workout_utils.js not loaded properly');
+    }
 });
 
 let currentExerciseIndex = -1;  // Start at -1 to show "Ready to begin"
@@ -96,6 +122,7 @@ let isConnected = false;
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 5;
 let wakeLock = null;
+let workoutTTS = null;
 
 // Screen wake lock functionality
 async function requestWakeLock() {
@@ -174,8 +201,9 @@ function connectWebSocket() {
 
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        
         if (data.status === 'exercise_started') {
-            // Continue with exercise after backend confirms start
+            // Backend confirmed music control, start exercise timer
             startExerciseTimer(workout[currentExerciseIndex]);
         }
     };
@@ -240,9 +268,12 @@ function startExerciseTimer(exercise, remainingTime = null) {
         }
 
         if (timeLeft == 10) {
-            ws.send(JSON.stringify({
-                command: "ten_seconds_left"
-            }))
+            // Speak directly on client
+            if (workoutTTS && workoutTTS.isSupported) {
+                workoutTTS.speak("Ten seconds left").catch(error => {
+                    console.error('TTS error:', error);
+                });
+            }
         }
 
     }, 1000);
@@ -263,10 +294,20 @@ function startExercise(exercise) {
     updateWorkoutList();
     updateRepetitionCounter(exercise);
 
+    // Speak the announcement directly on the client
+    if (workoutTTS && workoutTTS.isSupported && exercise.prompt) {
+        const side = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : '';
+        const announcement = exercise.prompt.replace('{name}', exercise.name).replace('{side}', side);
+        
+        workoutTTS.speak(announcement).catch(error => {
+            console.error('TTS error:', error);
+        });
+    }
+    
     // Only include side in the backend notification if it's "Both"
     const sideForBackend = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : null;
     
-    // Notify backend to start exercise (speech/music)
+    // Notify backend for music control only
     ws.send(JSON.stringify({
         command: 'start_exercise',
         exercise: {
@@ -310,7 +351,7 @@ async function nextExercise() {
     }
     
     if (currentExerciseIndex >= 0) {
-        // Notify backend of completed exercise
+        // Notify backend for tracking (currently unused but may be logged later)
         ws.send(JSON.stringify({
             command: 'complete_exercise',
             exerciseIndex: currentExerciseIndex
@@ -337,7 +378,14 @@ async function nextExercise() {
         document.getElementById('progress').style.width = '100%';
         updateWorkoutList();
         
-        // Notify backend of workout completion
+        // Speak completion message directly on client
+        if (workoutTTS && workoutTTS.isSupported) {
+            workoutTTS.speak("Workout finished. You're going to be so jacked").catch(error => {
+                console.error('TTS error:', error);
+            });
+        }
+        
+        // Notify backend to stop music and save workout to database
         ws.send(JSON.stringify({
             command: 'finish_workout'
         }));

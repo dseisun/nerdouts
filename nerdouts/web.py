@@ -19,7 +19,6 @@ from sqlalchemy.exc import IntegrityError
 from nerdouts.static_workouts import get_static_workouts
 from nerdouts.workout_runner import WorkoutService
 from nerdouts.config import app_context, get_current_context, Config
-from nerdouts.speech import _stop_input, get_speech_engine
 from nerdouts.music import SpotifyPlayer
 from nerdouts.models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
 
@@ -65,7 +64,6 @@ async def websocket_endpoint(websocket: WebSocket):
     music_player = None
     try:
         # Initialize workout components
-        speech_engine = get_speech_engine()
         music_player = SpotifyPlayer()
         
         while True:
@@ -73,17 +71,13 @@ async def websocket_endpoint(websocket: WebSocket):
             command = data.get("command")
             
             if command == "start_exercise":
-                # Get exercise details
-                exercise = data.get("exercise", {})
-                exercise_name = exercise.get("name", "")
-                prompt = exercise.get("prompt", "")
-                side = exercise.get("side")
-                
-                # Announce exercise
+                # Control music playback while client handles speech
                 music_player.pause()
-                # Only include side in announcement if it exists
-                announcement: str = prompt.format(name=exercise_name, side=side) if side else prompt.format(name=exercise_name)
-                speech_engine(announcement)
+                
+                # Brief delay to allow client speech to start before resuming music
+                import asyncio
+                await asyncio.sleep(0.5)
+                
                 music_player.play()
                 
                 # Send confirmation back to frontend
@@ -93,12 +87,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Optional exercise completion announcement
                 pass
 
-            elif command == "ten_seconds_left":
-                speech_engine("Ten seconds left")
                 
             elif command == "finish_workout":
                 music_player.pause()
-                speech_engine("Workout finished. You're going to be so jacked")
+                # Client handles TTS directly now
                 
                 # Process completed exercises if they exist
                 if connection_id in active_workout_exercises:
@@ -333,6 +325,14 @@ async def exercises_page(request: Request):
     """Exercise management page."""
     return templates.TemplateResponse(
         "exercises.html",
+        {"request": request}
+    )
+
+@app.get("/test/tts", response_class=HTMLResponse)
+async def test_tts_page(request: Request):
+    """TTS test page for debugging browser speech synthesis."""
+    return templates.TemplateResponse(
+        "test_tts.html",
         {"request": request}
     )
 
