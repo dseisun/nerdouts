@@ -57,6 +57,60 @@
                 </div>
             </div>
         </div>
+
+        <!-- Spotify Controls Card -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Spotify Logo -->
+                    <div style="flex-shrink: 0;">
+                        <svg width="40" height="40" viewBox="0 0 63 63" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M31.5 0C14.1 0 0 14.1 0 31.5S14.1 63 31.5 63 63 48.9 63 31.5 48.9 0 31.5 0zm12.6 45.5c-.6 1.2-2.1 1.5-3.3.9-9-5.5-20.3-6.8-33.7-3.7-1.3.3-2.6-.6-2.9-1.9-.3-1.3.6-2.6 1.9-2.9 14.5-3.5 26.7-2 36.8 4.3 1.2.6 1.5 2.1.9 3.3zm3.4-7.6c-.7 1.5-2.4 2-3.9 1.3-10.3-6.3-25.9-8.2-38-4.5-1.5.5-3.1-.3-3.6-1.8-.5-1.5.3-3.1 1.8-3.6 13.8-4.2 31.3-2 43 5.2 1.5.8 2 2.4 1.3 3.9zm.3-8c-12.3-7.3-32.6-8-47.5-4.4-1.8.5-3.6-.6-4.1-2.5-.5-1.8.6-3.6 2.5-4.1 17.5-4.1 39.5-3.1 53.9 5.1 1.6 1 2.1 3 1.1 4.6-.9 1.6-3 2.1-4.6 1.1z" fill="#1DB954"/>
+                        </svg>
+                    </div>
+
+                    <!-- Now Playing Info -->
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <p class="mb-1 text-muted small">Now Playing</p>
+                        <p class="mb-0" id="spotify-track-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <small>Not playing</small>
+                        </p>
+                        <p class="mb-0 text-muted" id="spotify-artist-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <small id="spotify-artist-text"></small>
+                        </p>
+                    </div>
+
+                    <!-- Playback Controls -->
+                    <div class="d-flex gap-2" style="flex-shrink: 0;">
+                        <button class="btn btn-sm btn-outline-secondary" id="spotify-prev" title="Previous Track">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                                <line x1="5" y1="4" x2="5" y2="20"></line>
+                            </svg>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="spotify-play-pause" title="Play/Pause">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="spotify-next" title="Next Track">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                <line x1="19" y1="4" x2="19" y2="20"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Volume Control -->
+                    <div class="d-flex align-items-center gap-2" style="flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        </svg>
+                        <input type="range" id="spotify-volume" class="form-range" min="0" max="100" value="50" style="width: 100px;">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -78,6 +132,7 @@
 <!-- Load required scripts first -->
 <script src="/static/js/workout_utils.js"></script>
 <script src="/static/js/tts.js"></script>
+<script src="/static/js/spotify_player.js"></script>
 
 <script>
 // This is a template variable injected by Jinja2 at runtime
@@ -116,13 +171,11 @@ let currentRepetition = 0;
 let currentSideIndex = 0;
 let timer = null;
 let timeLeft = 0;
-let ws = null;
 let isPaused = false;
-let isConnected = false;
-let reconnectAttempts = 0;
-const maxReconnectAttempts = 5;
 let wakeLock = null;
 let workoutTTS = null;
+let spotifyPlayer = null;
+let spotifyInitialized = false;
 
 // Screen wake lock functionality
 async function requestWakeLock() {
@@ -158,10 +211,9 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 // Initialize toast
-const toast = new bootstrap.Toast(document.getElementById('connection-toast'));
 const connectionStatus = document.getElementById('connection-status');
 
-function showConnectionStatus(message, autohide = true) {
+function showStatus(message, autohide = true) {
     connectionStatus.textContent = message;
     const toastEl = document.getElementById('connection-toast');
     const toast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, {
@@ -170,43 +222,19 @@ function showConnectionStatus(message, autohide = true) {
     toast.show();
 }
 
-function connectWebSocket() {
-    if (ws) {
-        ws.close();
+// Initialize Spotify player
+async function initializeSpotify() {
+    try {
+        spotifyPlayer = new SpotifyPlayer();
+        await spotifyPlayer.initialize();
+        spotifyInitialized = true;
+        showStatus('Spotify ready', true);
+        console.log('Spotify player initialized');
+    } catch (error) {
+        console.error('Failed to initialize Spotify:', error);
+        showStatus('Spotify initialization failed. Music will not play.', false);
+        // Continue without Spotify - TTS and workout will still work
     }
-
-    ws = new WebSocket(`ws://${window.location.host}/ws`);
-
-    ws.onopen = () => {
-        isConnected = true;
-        reconnectAttempts = 0;
-        showConnectionStatus('Connected to server', true);
-    };
-
-    ws.onclose = () => {
-        isConnected = false;
-        if (reconnectAttempts < maxReconnectAttempts) {
-            reconnectAttempts++;
-            showConnectionStatus(`Connection lost. Reconnecting (${reconnectAttempts}/${maxReconnectAttempts})...`, false);
-            setTimeout(connectWebSocket, 1000 * reconnectAttempts);
-        } else {
-            showConnectionStatus('Connection lost. Please refresh the page.', false);
-        }
-    };
-
-    ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        showConnectionStatus('Connection error', false);
-    };
-
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        if (data.status === 'exercise_started') {
-            // Backend confirmed music control, start exercise timer
-            startExerciseTimer(workout[currentExerciseIndex]);
-        }
-    };
 }
 
 function updateTimer(seconds) {
@@ -279,42 +307,48 @@ function startExerciseTimer(exercise, remainingTime = null) {
     }, 1000);
 }
 
-function startExercise(exercise) {
-    if (!isConnected) {
-        showConnectionStatus('Not connected to server. Please refresh the page.', false);
-        return;
-    }
-
+async function startExercise(exercise) {
     document.getElementById('current-exercise').textContent = exercise.name;
     // Use string interpolation for the prompt with empty side if not needed
     const promptEl = document.getElementById('exercise-prompt');
     const side = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : '';
-    promptEl.textContent = exercise.prompt ? 
+    promptEl.textContent = exercise.prompt ?
     exercise.prompt.replace('{name}', exercise.name).replace('{side}', side) : '';
     updateWorkoutList();
     updateRepetitionCounter(exercise);
+
+    // Pause Spotify to make room for TTS announcement
+    if (spotifyInitialized && spotifyPlayer) {
+        try {
+            await spotifyPlayer.pause();
+        } catch (error) {
+            console.error('Error pausing Spotify:', error);
+        }
+    }
 
     // Speak the announcement directly on the client
     if (workoutTTS && workoutTTS.isSupported && exercise.prompt) {
         const side = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : '';
         const announcement = exercise.prompt.replace('{name}', exercise.name).replace('{side}', side);
-        
-        workoutTTS.speak(announcement).catch(error => {
+
+        try {
+            await workoutTTS.speak(announcement);
+        } catch (error) {
             console.error('TTS error:', error);
-        });
-    }
-    
-    // Only include side in the backend notification if it's "Both"
-    const sideForBackend = exercise.side === 'Both' ? exercise.sides[currentSideIndex] : null;
-    
-    // Notify backend for music control only
-    ws.send(JSON.stringify({
-        command: 'start_exercise',
-        exercise: {
-            ...exercise,
-            side: sideForBackend
         }
-    }));
+    }
+
+    // Resume Spotify after announcement
+    if (spotifyInitialized && spotifyPlayer) {
+        try {
+            await spotifyPlayer.resume();
+        } catch (error) {
+            console.error('Error resuming Spotify:', error);
+        }
+    }
+
+    // Start exercise timer immediately
+    startExerciseTimer(exercise);
 }
 
 function continueExercise() {
@@ -344,20 +378,13 @@ async function nextExercise() {
     if (timer) {
         clearInterval(timer);
     }
-    
-    // Request wake lock when starting the first exercise
+
+    // Request wake lock and initialize Spotify on first exercise
     if (currentExerciseIndex === -1) {
         await requestWakeLock();
+        await initializeSpotify();
     }
-    
-    if (currentExerciseIndex >= 0) {
-        // Notify backend for tracking (currently unused but may be logged later)
-        ws.send(JSON.stringify({
-            command: 'complete_exercise',
-            exerciseIndex: currentExerciseIndex
-        }));
-    }
-    
+
     currentExerciseIndex++;
     currentRepetition = 0;
     currentSideIndex = 0;
@@ -367,7 +394,7 @@ async function nextExercise() {
     nextButton.textContent = 'Pause';
     nextButton.classList.remove('btn-primary');
     nextButton.classList.add('btn-warning');
-    
+
     if (currentExerciseIndex >= workout.length) {
         document.getElementById('current-exercise').textContent = 'Workout Complete!';
         document.getElementById('exercise-prompt').textContent = '';
@@ -377,30 +404,31 @@ async function nextExercise() {
         document.getElementById('skip').style.display = 'none';
         document.getElementById('progress').style.width = '100%';
         updateWorkoutList();
-        
+
+        // Stop Spotify playback
+        if (spotifyInitialized && spotifyPlayer) {
+            try {
+                await spotifyPlayer.pause();
+            } catch (error) {
+                console.error('Error pausing Spotify:', error);
+            }
+        }
+
         // Speak completion message directly on client
         if (workoutTTS && workoutTTS.isSupported) {
             workoutTTS.speak("Workout finished. You're going to be so jacked").catch(error => {
                 console.error('TTS error:', error);
             });
         }
-        
-        // Notify backend to stop music and save workout to database
-        ws.send(JSON.stringify({
-            command: 'finish_workout'
-        }));
-        
+
         // Release wake lock when workout is complete
         await releaseWakeLock();
         return;
     }
-    
-    const exercise = workout[currentExerciseIndex];
-    startExercise(exercise);
-}
 
-// Initialize WebSocket connection
-connectWebSocket();
+    const exercise = workout[currentExerciseIndex];
+    await startExercise(exercise);
+}
 
 // Initialize workout list
 updateWorkoutList();
@@ -440,6 +468,84 @@ document.getElementById('skip').addEventListener('click', () => {
         clearInterval(timer);
     }
     nextExercise();
+});
+
+// Spotify Controls
+function updateNowPlaying(track, isPlaying) {
+    if (!track) {
+        return;
+    }
+
+    try {
+        document.getElementById('spotify-track-name').innerHTML =
+            `<small>${track.name}</small>`;
+        document.getElementById('spotify-artist-text').textContent =
+            track.artists.map(a => a.name).join(', ');
+
+        // Update play/pause button icon
+        const playPauseBtn = document.getElementById('spotify-play-pause');
+        if (isPlaying) {
+            playPauseBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            `;
+            playPauseBtn.title = 'Pause';
+        } else {
+            playPauseBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            `;
+            playPauseBtn.title = 'Play';
+        }
+    } catch (error) {
+        console.error('Error updating now playing:', error);
+    }
+}
+
+// Listen to Spotify track changes
+window.addEventListener('spotifyTrackChanged', (event) => {
+    updateNowPlaying(event.detail.track, event.detail.isPlaying);
+});
+
+// Spotify button handlers
+document.getElementById('spotify-prev')?.addEventListener('click', async () => {
+    try {
+        await spotifyPlayer.previous();
+        setTimeout(updateNowPlaying, 500);
+    } catch (error) {
+        console.error('Error skipping to previous:', error);
+    }
+});
+
+document.getElementById('spotify-play-pause')?.addEventListener('click', async () => {
+    try {
+        await spotifyPlayer.togglePlayPause();
+        setTimeout(updateNowPlaying, 500);
+    } catch (error) {
+        console.error('Error toggling play/pause:', error);
+    }
+});
+
+document.getElementById('spotify-next')?.addEventListener('click', async () => {
+    try {
+        await spotifyPlayer.next();
+        setTimeout(updateNowPlaying, 500);
+    } catch (error) {
+        console.error('Error skipping to next:', error);
+    }
+});
+
+// Volume control
+document.getElementById('spotify-volume')?.addEventListener('input', async (e) => {
+    const volume = e.target.value / 100;
+    try {
+        await spotifyPlayer.setVolume(volume);
+    } catch (error) {
+        console.error('Error setting volume:', error);
+    }
 });
 </script>
 {% endblock %}

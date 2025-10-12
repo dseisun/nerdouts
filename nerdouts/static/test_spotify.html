@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spotify Player Test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #1DB954;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #1ed760;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        #log {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #ccc;
+        }
+        .log-error {
+            border-left-color: #f8d7da;
+            color: #721c24;
+        }
+        .log-success {
+            border-left-color: #d4edda;
+            color: #155724;
+        }
+        .log-info {
+            border-left-color: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spotify Web Playback SDK Test</h1>
+
+    <div class="section">
+        <h2>1. Authentication</h2>
+        <button onclick="checkAuth()">Check Authentication</button>
+        <button onclick="goToLogin()">Login with Spotify</button>
+        <div id="auth-status" class="status info">Not checked yet</div>
+    </div>
+
+    <div class="section">
+        <h2>2. Initialize Player</h2>
+        <button onclick="initPlayer()">Initialize Spotify Player</button>
+        <div id="init-status" class="status info">Not initialized</div>
+    </div>
+
+    <div class="section">
+        <h2>3. Basic Controls</h2>
+        <button onclick="testPause()">Test Pause</button>
+        <button onclick="testResume()">Test Resume</button>
+        <button onclick="getState()">Get Current State</button>
+        <div id="control-status" class="status info">Ready</div>
+    </div>
+
+    <div class="section">
+        <h2>Debug Log</h2>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="log"></div>
+    </div>
+
+    <script src="/static/js/spotify_player.js"></script>
+    <script>
+        let player = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `status ${type}`;
+            log(message, type);
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('spotify_access_token');
+            const refreshToken = localStorage.getItem('spotify_refresh_token');
+
+            if (token) {
+                updateStatus('auth-status', '✓ Access Token: ' + token.substring(0, 20) + '...', 'success');
+            } else {
+                updateStatus('auth-status', '✗ No access token found', 'error');
+            }
+
+            if (refreshToken) {
+                log('Refresh token found: ' + refreshToken.substring(0, 20) + '...', 'info');
+            } else {
+                log('No refresh token', 'info');
+            }
+        }
+
+        function goToLogin() {
+            window.location.href = '/spotify/login';
+        }
+
+        async function initPlayer() {
+            try {
+                updateStatus('init-status', 'Initializing...', 'info');
+                log('Creating SpotifyPlayer instance', 'info');
+
+                player = new SpotifyPlayer();
+                log('SpotifyPlayer created', 'success');
+
+                log('Calling initialize()...', 'info');
+                await player.initialize();
+
+                log('Player initialized successfully', 'success');
+                updateStatus('init-status', '✓ Player Initialized', 'success');
+
+                // Try to get device ID
+                setTimeout(() => {
+                    log(`Device ID: ${player.deviceId || 'Not yet captured'}`, 'info');
+                }, 1000);
+            } catch (error) {
+                log('ERROR: ' + error.message, 'error');
+                updateStatus('init-status', '✗ ' + error.message, 'error');
+            }
+        }
+
+        async function testPause() {
+            if (!player) {
+                updateStatus('control-status', 'Player not initialized', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('control-status', 'Testing pause...', 'info');
+                log('Calling pause()...', 'info');
+                await player.pause();
+                log('Pause succeeded', 'success');
+                updateStatus('control-status', '✓ Pause worked', 'success');
+            } catch (error) {
+                log('ERROR: ' + error.message, 'error');
+                updateStatus('control-status', '✗ Pause failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testResume() {
+            if (!player) {
+                updateStatus('control-status', 'Player not initialized', 'error');
+                return;
+            }
+
+            try {
+                updateStatus('control-status', 'Testing resume...', 'info');
+                log('Calling resume()...', 'info');
+                await player.resume();
+                log('Resume succeeded', 'success');
+                updateStatus('control-status', '✓ Resume worked', 'success');
+            } catch (error) {
+                log('ERROR: ' + error.message, 'error');
+                updateStatus('control-status', '✗ Resume failed: ' + error.message, 'error');
+            }
+        }
+
+        async function getState() {
+            if (!player) {
+                updateStatus('control-status', 'Player not initialized', 'error');
+                return;
+            }
+
+            try {
+                log('Getting current state...', 'info');
+                const state = await player.getCurrentState();
+                if (state) {
+                    log('State: ' + JSON.stringify(state, null, 2), 'success');
+                    updateStatus('control-status', '✓ Got state', 'success');
+                } else {
+                    log('No active playback', 'info');
+                    updateStatus('control-status', 'No active playback', 'info');
+                }
+            } catch (error) {
+                log('ERROR: ' + error.message, 'error');
+                updateStatus('control-status', '✗ Get state failed: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-check auth on load
+        window.addEventListener('load', () => {
+            log('Page loaded', 'info');
+            checkAuth();
+        });
+    </script>
+</body>
+</html>

@@ -19,8 +19,8 @@ from sqlalchemy.exc import IntegrityError
 from nerdouts.static_workouts import get_static_workouts
 from nerdouts.workout_runner import WorkoutService
 from nerdouts.config import app_context, get_current_context, Config
-from nerdouts.music import SpotifyPlayer
 from nerdouts.models import Exercise, ExerciseCategory, Workout, WorkoutExercise, StaticWorkout
+from nerdouts.spotify_auth import router as spotify_auth_router
 
 
 #TODO Add ability to add required/excluded exercises
@@ -28,6 +28,9 @@ from nerdouts.models import Exercise, ExerciseCategory, Workout, WorkoutExercise
 
 
 app = FastAPI()
+
+# Include Spotify auth routes
+app.include_router(spotify_auth_router)
 
 # Global workout runner for cleanup
 workout_lock = threading.Lock()
@@ -48,54 +51,36 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for workout session communication.
+
+    Now that music control is handled on the frontend via Spotify SDK,
+    this endpoint primarily handles workout completion and data persistence.
+    The frontend can use this for optional real-time updates.
+    """
     await websocket.accept()
-    
+
     # Store connection
     connection_id = id(websocket)
     active_connections[connection_id] = websocket
-    
+
     # Get the exercises if they exist from the most recent request
-    # This assumes the websocket connection is established right after the HTTP request
     request_ids = list(active_workout_exercises.keys())
     if request_ids:
         most_recent_request_id = request_ids[-1]
         active_workout_exercises[connection_id] = active_workout_exercises.pop(most_recent_request_id)
-    
-    music_player = None
+
     try:
-        # Initialize workout components
-        music_player = SpotifyPlayer()
-        
         while True:
             data = await websocket.receive_json()
             command = data.get("command")
-            
-            if command == "start_exercise":
-                # Control music playback while client handles speech
-                music_player.pause()
-                
-                # Brief delay to allow client speech to start before resuming music
-                import asyncio
-                await asyncio.sleep(0.5)
-                
-                music_player.play()
-                
-                # Send confirmation back to frontend
-                await websocket.send_json({"status": "exercise_started"})
-                
-            elif command == "complete_exercise":
-                # Optional exercise completion announcement
-                pass
 
-                
-            elif command == "finish_workout":
-                music_player.pause()
-                # Client handles TTS directly now
-                
-                # Process completed exercises if they exist
+            # NOTE: Music control is now handled on the frontend via Spotify Web Playback SDK
+            # This endpoint no longer needs to pause/resume Spotify
+
+            if command == "finish_workout":
+                # Save workout completion data to database
                 if connection_id in active_workout_exercises:
-                    # Write WorkoutExercises and Workout to db
-
                     with Session(get_current_context().engine) as session:
                         completed_exercises = active_workout_exercises[connection_id]
                         workout_exercises = [
@@ -108,13 +93,15 @@ async def websocket_endpoint(websocket: WebSocket):
                         workout.workout_exercises.extend(workout_exercises)
                         session.add(workout)
                         session.commit()
-                        
-                        print(f"finished workout and have these exercises: {completed_exercises}")
-                    # Here you would typically write to database
-                    # For now we just clean up
+
+                        print(f"Workout completed with exercises: {[e.name for e in completed_exercises]}")
+
                     del active_workout_exercises[connection_id]
-                
+
+                # Acknowledge completion
+                await websocket.send_json({"status": "workout_saved"})
                 break
+
     except Exception as e:
         print(f"WebSocket error: {e}")
     finally:
@@ -123,10 +110,6 @@ async def websocket_endpoint(websocket: WebSocket):
             del active_connections[connection_id]
         if connection_id in active_workout_exercises:
             del active_workout_exercises[connection_id]
-            
-        # Clean up music player
-        if music_player:
-            music_player.pause()
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):

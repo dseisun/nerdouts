@@ -73,7 +73,6 @@ class WorkoutTTS {
     loadVoices() {
         try {
             this.voices = speechSynthesis.getVoices();
-            console.log('TTS: getVoices() returned:', this.voices);
             
             // Try to select a good default voice
             if (this.voices.length > 0 && !this.selectedVoice) {

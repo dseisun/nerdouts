@@ -3,6 +3,7 @@ vendor/
 secrets.yaml
 *~
 *.db
+.env
 
 # Python build artifacts
 *.egg-info/
