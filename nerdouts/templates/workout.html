@@ -44,6 +44,9 @@
                 <h2 id="current-exercise">Ready to begin!</h2>
                 <p class="text-muted" id="exercise-prompt"></p>
                 <div class="h4 mb-3" id="repetition-counter"></div>
+                <div class="text-muted mb-2">
+                    <small>Total Time Remaining: <span id="total-time-remaining">--:--</span></small>
+                </div>
                 <div class="display-1 my-4" id="timer">00:00</div>
                 <div class="progress mb-4">
                     <div class="progress-bar" 
@@ -171,6 +174,7 @@ let currentRepetition = 0;
 let currentSideIndex = 0;
 let timer = null;
 let timeLeft = 0;
+let totalTimeRemaining = 0;  // Track total workout time remaining
 let isPaused = false;
 let wakeLock = null;
 let workoutTTS = null;
@@ -240,8 +244,48 @@ async function initializeSpotify() {
 function updateTimer(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    document.getElementById('timer').textContent = 
+    document.getElementById('timer').textContent =
         `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function updateTotalTimeRemaining(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    document.getElementById('total-time-remaining').textContent =
+        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function calculateRemainingWorkoutTime() {
+    let totalSeconds = 0;
+
+    // Add time for remaining exercises (after current)
+    for (let i = currentExerciseIndex + 1; i < workout.length; i++) {
+        const exercise = workout[i];
+        const sidesCount = exercise.side === 'Both' ? 2 : 1;
+        totalSeconds += exercise.default_time * exercise.repetition * sidesCount;
+    }
+
+    // Add remaining time for current exercise
+    if (currentExerciseIndex >= 0 && currentExerciseIndex < workout.length) {
+        const exercise = workout[currentExerciseIndex];
+        const sidesCount = exercise.side === 'Both' ? 2 : 1;
+        const totalRepsForExercise = exercise.repetition * sidesCount;
+
+        // Calculate how many reps are left (including current)
+        let currentRepNumber = currentRepetition;
+        if (exercise.side === 'Both') {
+            currentRepNumber = currentRepetition * 2 + currentSideIndex;
+        }
+        const repsRemaining = totalRepsForExercise - currentRepNumber;
+
+        // Add time for remaining reps after current one
+        totalSeconds += (repsRemaining - 1) * exercise.default_time;
+
+        // Add current exercise's remaining time
+        totalSeconds += timeLeft;
+    }
+
+    return totalSeconds;
 }
 
 function updateProgress(current, total) {
@@ -280,16 +324,22 @@ function updateRepetitionCounter(exercise) {
 function startExerciseTimer(exercise, remainingTime = null) {
     timeLeft = remainingTime !== null ? remainingTime : exercise.default_time;
     updateTimer(timeLeft);
-    
+
+    // Update total time remaining
+    totalTimeRemaining = calculateRemainingWorkoutTime();
+    updateTotalTimeRemaining(totalTimeRemaining);
+
     if (timer) {
         clearInterval(timer);
     }
-    
+
     timer = setInterval(() => {
         timeLeft--;
+        totalTimeRemaining--;
         updateTimer(timeLeft);
+        updateTotalTimeRemaining(totalTimeRemaining);
         updateProgress(exercise.default_time - timeLeft, exercise.default_time);
-        
+
         if (timeLeft <= 0) {
             clearInterval(timer);
             continueExercise();
@@ -400,6 +450,7 @@ async function nextExercise() {
         document.getElementById('exercise-prompt').textContent = '';
         document.getElementById('repetition-counter').textContent = '';
         document.getElementById('timer').textContent = '00:00';
+        document.getElementById('total-time-remaining').textContent = '00:00';
         document.getElementById('next').style.display = 'none';
         document.getElementById('skip').style.display = 'none';
         document.getElementById('progress').style.width = '100%';
